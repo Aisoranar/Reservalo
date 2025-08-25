@@ -1,0 +1,58 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use App\Models\Department;
+
+class ColombianDepartmentsSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $departments = [
+            ['name' => 'Amazonas', 'code' => 'AMA'],
+            ['name' => 'Antioquia', 'code' => 'ANT'],
+            ['name' => 'Arauca', 'code' => 'ARA'],
+            ['name' => 'Atlántico', 'code' => 'ATL'],
+            ['name' => 'Bolívar', 'code' => 'BOL'],
+            ['name' => 'Boyacá', 'code' => 'BOY'],
+            ['name' => 'Caldas', 'code' => 'CAL'],
+            ['name' => 'Caquetá', 'code' => 'CAQ'],
+            ['name' => 'Casanare', 'code' => 'CAS'],
+            ['name' => 'Cauca', 'code' => 'CAU'],
+            ['name' => 'Cesar', 'code' => 'CES'],
+            ['name' => 'Chocó', 'code' => 'CHO'],
+            ['name' => 'Córdoba', 'code' => 'COR'],
+            ['name' => 'Cundinamarca', 'code' => 'CUN'],
+            ['name' => 'Distrito Capital de Bogotá', 'code' => 'DC'],
+            ['name' => 'Guainía', 'code' => 'GUA'],
+            ['name' => 'Guaviare', 'code' => 'GUV'],
+            ['name' => 'Huila', 'code' => 'HUI'],
+            ['name' => 'La Guajira', 'code' => 'LAG'],
+            ['name' => 'Magdalena', 'code' => 'MAG'],
+            ['name' => 'Meta', 'code' => 'MET'],
+            ['name' => 'Nariño', 'code' => 'NAR'],
+            ['name' => 'Norte de Santander', 'code' => 'NSA'],
+            ['name' => 'Putumayo', 'code' => 'PUT'],
+            ['name' => 'Quindío', 'code' => 'QUI'],
+            ['name' => 'Risaralda', 'code' => 'RIS'],
+            ['name' => 'San Andrés y Providencia', 'code' => 'SAP'],
+            ['name' => 'Santander', 'code' => 'SAN'],
+            ['name' => 'Sucre', 'code' => 'SUC'],
+            ['name' => 'Tolima', 'code' => 'TOL'],
+            ['name' => 'Valle del Cauca', 'code' => 'VAC'],
+            ['name' => 'Vaupés', 'code' => 'VAU'],
+            ['name' => 'Vichada', 'code' => 'VID']
+        ];
+
+        foreach ($departments as $department) {
+            Department::create($department);
+        }
+
+        $this->command->info('✅ Departamentos de Colombia creados exitosamente');
+    }
+}

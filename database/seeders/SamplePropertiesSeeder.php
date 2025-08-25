@@ -1,0 +1,252 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use App\Models\Property;
+use App\Models\City;
+use App\Models\Department;
+
+class SamplePropertiesSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // Obtener algunas ciudades para asignar a las propiedades
+        $cities = City::with('department')->take(20)->get();
+        
+        if ($cities->isEmpty()) {
+            $this->command->warn('No hay ciudades disponibles. Ejecuta primero ColombianCitiesSeeder.');
+            return;
+        }
+
+        $properties = [
+            [
+                'name' => 'Casa de Campo en Santa Elena',
+                'description' => 'Hermosa casa de campo con vista panorámica a las montañas de Medellín. Ideal para familias que buscan tranquilidad y contacto con la naturaleza. Cuenta con jardín privado, terraza y chimenea.',
+                'location' => 'Santa Elena, Medellín',
+                'price' => 250000,
+                'capacity' => 6,
+                'type' => 'casa',
+                'amenities' => ['wifi', 'piscina', 'aire_acondicionado', 'cocina', 'tv', 'parrilla', 'estacionamiento'],
+                'features' => ['vista_montana', 'jardin_privado', 'terraza', 'chimenea'],
+                'bedrooms' => 3,
+                'bathrooms' => 2,
+                'size' => 180.50,
+                'parking' => 'gratis',
+                'pet_friendly' => true,
+                'smoking_allowed' => false,
+                'check_in_time' => '15:00',
+                'check_out_time' => '11:00',
+                'min_stay' => 2,
+                'cleaning_fee' => 50000,
+                'security_deposit' => 100000,
+                'house_rules' => 'No fumar, respetar el vecindario, mantener limpio el espacio.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 7 días antes del check-in.',
+                'rating' => 4.8,
+                'review_count' => 12,
+                'status' => 'available',
+                'featured_until' => now()->addDays(30),
+                'city_id' => $cities->where('name', 'Medellín')->first()?->id ?? $cities->random()->id
+            ],
+            [
+                'name' => 'Apartamento Premium en Zona Rosa',
+                'description' => 'Elegante apartamento en el corazón de la Zona Rosa de Bogotá. Ubicado en un edificio de lujo con seguridad 24/7, gimnasio y terraza comunal. Perfecto para viajes de negocios o turismo.',
+                'location' => 'Zona Rosa, Bogotá',
+                'price' => 180000,
+                'capacity' => 4,
+                'type' => 'apartamento',
+                'amenities' => ['wifi', 'aire_acondicionado', 'cocina', 'tv', 'gimnasio', 'seguridad_24h', 'terraza_comunal'],
+                'features' => ['vista_ciudad', 'balcon', 'ascensor', 'porteria'],
+                'bedrooms' => 2,
+                'bathrooms' => 2,
+                'size' => 95.00,
+                'parking' => 'pago',
+                'pet_friendly' => false,
+                'smoking_allowed' => false,
+                'check_in_time' => '15:00',
+                'check_out_time' => '11:00',
+                'min_stay' => 1,
+                'cleaning_fee' => 35000,
+                'security_deposit' => 80000,
+                'house_rules' => 'No mascotas, no fumar, respetar horarios de silencio.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 3 días antes del check-in.',
+                'rating' => 4.9,
+                'review_count' => 28,
+                'status' => 'available',
+                'featured_until' => now()->addDays(45),
+                'city_id' => $cities->where('name', 'Bogotá')->first()?->id ?? $cities->random()->id
+            ],
+            [
+                'name' => 'Cabaña Rústica en Villa de Leyva',
+                'description' => 'Encantadora cabaña rústica construida en madera y piedra, ubicada en las afueras de Villa de Leyva. Rodeada de naturaleza, ideal para parejas que buscan romanticismo y aventura.',
+                'location' => 'Villa de Leyva, Boyacá',
+                'price' => 120000,
+                'capacity' => 2,
+                'type' => 'cabaña',
+                'amenities' => ['wifi', 'cocina', 'tv', 'chimenea', 'terraza', 'estacionamiento'],
+                'features' => ['vista_montana', 'jardin_privado', 'construccion_rustica', 'aire_libre'],
+                'bedrooms' => 1,
+                'bathrooms' => 1,
+                'size' => 65.00,
+                'parking' => 'gratis',
+                'pet_friendly' => true,
+                'smoking_allowed' => true,
+                'check_in_time' => '14:00',
+                'check_out_time' => '12:00',
+                'min_stay' => 2,
+                'cleaning_fee' => 25000,
+                'security_deposit' => 60000,
+                'house_rules' => 'Respetar la naturaleza, mantener limpio el espacio.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 5 días antes del check-in.',
+                'rating' => 4.7,
+                'review_count' => 15,
+                'status' => 'available',
+                'city_id' => $cities->where('name', 'Villa de Leyva')->first()?->id ?? $cities->random()->id
+            ],
+            [
+                'name' => 'Hotel Boutique en Cartagena',
+                'description' => 'Exclusivo hotel boutique en el centro histórico de Cartagena. Combina la elegancia colonial con comodidades modernas. Cada habitación es única y cuenta con decoración personalizada.',
+                'location' => 'Centro Histórico, Cartagena',
+                'price' => 320000,
+                'capacity' => 2,
+                'type' => 'hotel',
+                'amenities' => ['wifi', 'aire_acondicionado', 'tv', 'minibar', 'servicio_habitacion', 'piscina', 'spa', 'restaurante'],
+                'features' => ['vista_mar', 'arquitectura_colonial', 'terraza_privada', 'servicio_concierge'],
+                'bedrooms' => 1,
+                'bathrooms' => 1,
+                'size' => 45.00,
+                'parking' => 'pago',
+                'pet_friendly' => false,
+                'smoking_allowed' => false,
+                'check_in_time' => '15:00',
+                'check_out_time' => '11:00',
+                'min_stay' => 1,
+                'cleaning_fee' => 0,
+                'security_deposit' => 150000,
+                'house_rules' => 'No mascotas, no fumar, respetar horarios del hotel.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 24 horas antes del check-in.',
+                'rating' => 4.9,
+                'review_count' => 42,
+                'status' => 'available',
+                'featured_until' => now()->addDays(60),
+                'city_id' => $cities->where('name', 'Cartagena')->first()?->id ?? $cities->random()->id
+            ],
+            [
+                'name' => 'Finca Cafetera en Salento',
+                'description' => 'Hermosa finca cafetera tradicional en el corazón del Eje Cafetero. Rodeada de plantaciones de café y montañas. Incluye tour por la finca y degustación de café colombiano.',
+                'location' => 'Salento, Quindío',
+                'price' => 280000,
+                'capacity' => 8,
+                'type' => 'finca',
+                'amenities' => ['wifi', 'cocina', 'tv', 'piscina', 'parrilla', 'estacionamiento', 'tour_cafe'],
+                'features' => ['vista_montana', 'plantaciones_cafe', 'jardin_privado', 'senderos_naturaleza'],
+                'bedrooms' => 4,
+                'bathrooms' => 3,
+                'size' => 250.00,
+                'parking' => 'gratis',
+                'pet_friendly' => true,
+                'smoking_allowed' => false,
+                'check_in_time' => '14:00',
+                'check_out_time' => '12:00',
+                'min_stay' => 3,
+                'cleaning_fee' => 60000,
+                'security_deposit' => 120000,
+                'house_rules' => 'Respetar la naturaleza, no fumar en interiores, mantener limpio el espacio.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 7 días antes del check-in.',
+                'rating' => 4.8,
+                'review_count' => 23,
+                'status' => 'available',
+                'city_id' => $cities->where('name', 'Salento')->first()?->id ?? $cities->random()->id
+            ],
+            [
+                'name' => 'Casa de Playa en Santa Marta',
+                'description' => 'Espaciosa casa de playa con acceso directo al mar. Diseño moderno y abierto, perfecta para familias grandes. Incluye hamacas, sombrillas y equipamiento de playa.',
+                'location' => 'Santa Marta, Magdalena',
+                'price' => 450000,
+                'capacity' => 10,
+                'type' => 'casa',
+                'amenities' => ['wifi', 'aire_acondicionado', 'cocina', 'tv', 'piscina', 'parrilla', 'estacionamiento', 'equipamiento_playa'],
+                'features' => ['vista_mar', 'acceso_playa', 'terraza_grande', 'jardin_privado'],
+                'bedrooms' => 5,
+                'bathrooms' => 4,
+                'size' => 320.00,
+                'parking' => 'gratis',
+                'pet_friendly' => true,
+                'smoking_allowed' => false,
+                'check_in_time' => '15:00',
+                'check_out_time' => '11:00',
+                'min_stay' => 3,
+                'cleaning_fee' => 80000,
+                'security_deposit' => 200000,
+                'house_rules' => 'Respetar el vecindario, mantener limpio el espacio, no hacer ruido después de las 10 PM.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 14 días antes del check-in.',
+                'rating' => 4.9,
+                'review_count' => 31,
+                'status' => 'available',
+                'featured_until' => now()->addDays(90),
+                'city_id' => $cities->where('name', 'Santa Marta')->first()?->id ?? $cities->random()->id
+            ],
+            [
+                'name' => 'Loft Industrial en Medellín',
+                'description' => 'Moderno loft con estilo industrial en el barrio Laureles. Techos altos, grandes ventanales y decoración minimalista. Ideal para parejas o viajeros solos que buscan estilo urbano.',
+                'location' => 'Laureles, Medellín',
+                'price' => 150000,
+                'capacity' => 2,
+                'type' => 'apartamento',
+                'amenities' => ['wifi', 'aire_acondicionado', 'cocina', 'tv', 'gimnasio', 'estacionamiento', 'porteria'],
+                'features' => ['estilo_industrial', 'techos_altos', 'grandes_ventanales', 'balcon'],
+                'bedrooms' => 1,
+                'bathrooms' => 1,
+                'size' => 75.00,
+                'parking' => 'pago',
+                'pet_friendly' => false,
+                'smoking_allowed' => false,
+                'check_in_time' => '15:00',
+                'check_out_time' => '11:00',
+                'min_stay' => 1,
+                'cleaning_fee' => 30000,
+                'security_deposit' => 70000,
+                'house_rules' => 'No mascotas, no fumar, respetar horarios de silencio.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 3 días antes del check-in.',
+                'rating' => 4.6,
+                'review_count' => 18,
+                'status' => 'available',
+                'city_id' => $cities->where('name', 'Medellín')->first()?->id ?? $cities->random()->id
+            ],
+            [
+                'name' => 'Cabaña de Montaña en Manizales',
+                'description' => 'Acogedora cabaña de montaña con vista al Nevado del Ruiz. Construida en madera, perfecta para disfrutar del clima frío de la montaña. Incluye chimenea y terraza con vista panorámica.',
+                'location' => 'Manizales, Caldas',
+                'price' => 180000,
+                'capacity' => 4,
+                'type' => 'cabaña',
+                'amenities' => ['wifi', 'cocina', 'tv', 'chimenea', 'terraza', 'estacionamiento', 'calefaccion'],
+                'features' => ['vista_montana', 'clima_frio', 'jardin_privado', 'senderos'],
+                'bedrooms' => 2,
+                'bathrooms' => 1,
+                'size' => 85.00,
+                'parking' => 'gratis',
+                'pet_friendly' => true,
+                'smoking_allowed' => false,
+                'check_in_time' => '14:00',
+                'check_out_time' => '12:00',
+                'min_stay' => 2,
+                'cleaning_fee' => 35000,
+                'security_deposit' => 80000,
+                'house_rules' => 'Respetar la naturaleza, mantener limpio el espacio, no hacer fogatas sin autorización.',
+                'cancellation_policy' => 'Cancelación gratuita hasta 5 días antes del check-in.',
+                'rating' => 4.7,
+                'review_count' => 19,
+                'status' => 'available',
+                'city_id' => $cities->where('name', 'Manizales')->first()?->id ?? $cities->random()->id
+            ]
+        ];
+
+        foreach ($properties as $propertyData) {
+            Property::create($propertyData);
+        }
+
+        $this->command->info('✅ Propiedades de ejemplo creadas exitosamente');
+    }
+}
