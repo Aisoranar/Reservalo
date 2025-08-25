@@ -46,6 +46,13 @@
                             <i class="fas fa-calendar-check me-1"></i>Mis Reservas
                         </a>
                     </li>
+                    
+                    <!-- Mis Favoritos para usuarios autenticados -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('favorites.*') ? 'active' : '' }}" href="{{ route('favorites.index') }}">
+                            <i class="fas fa-heart me-1"></i>Mis Favoritos
+                        </a>
+                    </li>
                 @endauth
                 
                 <!-- Dropdown Destinos -->

@@ -43,7 +43,7 @@
                                     <i class="fas fa-heart"></i>
                                 </div>
                                 <div class="info-content">
-                                    <div class="info-number">0</div>
+                                    <div class="info-number">{{ auth()->user()->favorites()->count() }}</div>
                                     <div class="info-label">Favoritos</div>
                                 </div>
                             </div>
@@ -54,7 +54,7 @@
                                     <i class="fas fa-star"></i>
                                 </div>
                                 <div class="info-content">
-                                    <div class="info-number">0</div>
+                                    <div class="info-number">{{ auth()->user()->reservations()->where('status', 'completed')->count() }}</div>
                                     <div class="info-label">Reseñas</div>
                                 </div>
                             </div>

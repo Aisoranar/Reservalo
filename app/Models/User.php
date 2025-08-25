@@ -83,6 +83,11 @@ class User extends Authenticatable
         return $this->hasMany(PropertyReview::class);
     }
 
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
     /**
      * Verificar roles
      */

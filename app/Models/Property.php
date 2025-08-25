@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Schema;
 
 class Property extends Model
 {
@@ -83,6 +84,11 @@ class Property extends Model
         return $this->hasMany(PropertyReview::class);
     }
 
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
     public function averageRating(): float
     {
         return $this->rating ?? 0.0;
@@ -96,6 +102,48 @@ class Property extends Model
     public function getFormattedPriceAttribute(): string
     {
         return '$' . number_format($this->price, 0);
+    }
+
+    public function getRatingAttribute(): float
+    {
+        try {
+            // Si ya tenemos las reviews cargadas, calcular el promedio
+            if ($this->relationLoaded('reviews')) {
+                return $this->reviews->avg('overall_rating') ?? 0.0;
+            }
+            
+            // Si no están cargadas, hacer una consulta directa
+            // Verificar si la tabla existe y tiene datos
+            if (Schema::hasTable('property_reviews')) {
+                return $this->reviews()->avg('overall_rating') ?? 0.0;
+            }
+            
+            return 0.0;
+        } catch (\Exception $e) {
+            // Si hay algún error, retornar 0
+            return 0.0;
+        }
+    }
+
+    public function getReviewCountAttribute(): int
+    {
+        try {
+            // Si ya tenemos las reviews cargadas, usar la colección
+            if ($this->relationLoaded('reviews')) {
+                return $this->reviews->count();
+            }
+            
+            // Si no están cargadas, hacer una consulta directa
+            // Verificar si la tabla existe y tiene datos
+            if (Schema::hasTable('property_reviews')) {
+                return $this->reviews()->count();
+            }
+            
+            return 0;
+        } catch (\Exception $e) {
+            // Si hay algún error, retornar 0
+            return 0;
+        }
     }
 
     public function getFormattedSizeAttribute(): string

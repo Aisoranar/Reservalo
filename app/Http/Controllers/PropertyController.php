@@ -113,9 +113,78 @@ class PropertyController extends Controller
 
     public function show(Property $property)
     {
-        $property->load(['images', 'reservations.approved()']);
+        $property->load(['images', 'reservations']);
         
         return view('properties.show', compact('property'));
+    }
+
+    public function quickView(Property $property)
+    {
+        try {
+            // Información básica sin cargar relaciones complejas
+            $data = [
+                'id' => $property->id,
+                'name' => $property->name,
+                'description' => $property->description,
+                'price' => '$' . number_format($property->price, 0),
+                'location' => $property->location,
+                'capacity' => $property->capacity,
+                'bedrooms' => $property->bedrooms ?? 'N/A',
+                'bathrooms' => $property->bathrooms ?? 'N/A',
+                'type' => $property->type,
+                'image_url' => null,
+                'amenities' => [],
+                'rating' => 0,
+                'review_count' => 0
+            ];
+            
+            // Intentar cargar la ciudad si existe
+            if ($property->city_id) {
+                try {
+                    $property->load('city.department');
+                    if ($property->city && $property->city->department) {
+                        $data['location'] = $property->city->name . ', ' . $property->city->department->name;
+                    }
+                } catch (\Exception $e) {
+                    // Si falla, mantener la ubicación original
+                }
+            }
+            
+            // Intentar cargar la imagen principal
+            try {
+                $primaryImage = $property->images()->where('is_primary', true)->first();
+                if ($primaryImage) {
+                    $data['image_url'] = $primaryImage->full_url;
+                }
+            } catch (\Exception $e) {
+                // Si falla, mantener image_url como null
+            }
+            
+            // Intentar cargar amenities si existen
+            try {
+                if ($property->amenities && is_array($property->amenities)) {
+                    $data['amenities'] = array_slice($property->amenities, 0, 5);
+                }
+            } catch (\Exception $e) {
+                // Si falla, mantener amenities como array vacío
+            }
+            
+            // Intentar cargar rating y review_count
+            try {
+                $data['rating'] = $property->rating;
+                $data['review_count'] = $property->review_count;
+            } catch (\Exception $e) {
+                // Si falla, mantener valores por defecto
+            }
+            
+            return response()->json($data);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al cargar la información de la propiedad',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function create()

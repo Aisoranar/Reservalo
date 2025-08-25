@@ -5,6 +5,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\FavoriteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +33,9 @@ Route::get('/api/cities', [LocationController::class, 'getAllCities'])->name('ap
 Route::get('/api/cities/search', [LocationController::class, 'searchCities'])->name('api.cities.search');
 Route::get('/api/cities/by-department', [LocationController::class, 'getCitiesByDepartment'])->name('api.cities.by-department');
 
+// API para vista rápida (pública)
+Route::get('/api/properties/{property}/quick-view', [PropertyController::class, 'quickView'])->name('api.properties.quick-view');
+
 
 
 // Rutas de autenticación (se generarán automáticamente con Breeze)
@@ -53,6 +57,11 @@ Route::middleware(['auth', 'active.user'])->group(function () {
     Route::get('/reservas/{reservation}', [ReservationController::class, 'show'])->name('reservations.show');
     Route::post('/reservas/{property}', [ReservationController::class, 'store'])->name('reservations.store');
     Route::delete('/reservas/{reservation}', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+
+    // Favoritos del usuario
+    Route::get('/favoritos', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favoritos/{property}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::get('/favoritos/{property}/check', [FavoriteController::class, 'check'])->name('favorites.check');
 
     // Panel de administración
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
