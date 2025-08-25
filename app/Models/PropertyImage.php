@@ -33,6 +33,12 @@ class PropertyImage extends Model
             return $this->url;
         }
         
+        // Si la imagen está en public/src/, usar asset() directamente
+        if (str_starts_with($this->url, 'src/')) {
+            return asset($this->url);
+        }
+        
+        // Para otras imágenes, usar storage
         return asset('storage/' . $this->url);
     }
 }

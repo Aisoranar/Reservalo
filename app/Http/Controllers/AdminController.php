@@ -31,6 +31,18 @@ class AdminController extends Controller
             'reactivation_requests' => DeactivatedUser::where('reactivation_requested', true)->count(),
         ];
 
+        // Agregar estadísticas de precios si el servicio está disponible
+        try {
+            $pricingService = app(\App\Services\PricingService::class);
+            $pricingStats = $pricingService->getPricingStats();
+            $stats = array_merge($stats, $pricingStats);
+        } catch (\Exception $e) {
+            // Si hay error, usar valores por defecto
+            $stats['active_prices'] = 0;
+            $stats['active_discounts'] = 0;
+            $stats['average_base_price'] = 0;
+        }
+
         return view('admin.dashboard', compact('stats'));
     }
 

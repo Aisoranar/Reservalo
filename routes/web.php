@@ -6,6 +6,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,9 +42,7 @@ Route::get('/api/properties/{property}/quick-view', [PropertyController::class, 
 // Rutas de autenticación (se generarán automáticamente con Breeze)
 Route::middleware(['auth', 'active.user'])->group(function () {
     // Dashboard del usuario
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Perfil del usuario
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -82,10 +81,14 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::patch('/properties/{property}/toggle', [PropertyController::class, 'toggleStatus'])->name('properties.toggle');
 
         // Gestión de reservas
-        Route::get('/reservations', [ReservationController::class, 'adminIndex'])->name('reservations.index');
-        Route::patch('/reservations/{reservation}/approve', [ReservationController::class, 'approve'])->name('reservations.approve');
-        Route::patch('/reservations/{reservation}/reject', [ReservationController::class, 'reject'])->name('reservations.reject');
-        Route::post('/properties/{property}/block-dates', [ReservationController::class, 'blockDates'])->name('properties.block-dates');
+        Route::get('/reservations', [App\Http\Controllers\Admin\ReservationController::class, 'index'])->name('reservations.index');
+        Route::get('/reservations/{reservation}', [App\Http\Controllers\Admin\ReservationController::class, 'show'])->name('reservations.show');
+        Route::post('/reservations/{reservation}/approve', [App\Http\Controllers\Admin\ReservationController::class, 'approve'])->name('reservations.approve');
+        Route::post('/reservations/{reservation}/reject', [App\Http\Controllers\Admin\ReservationController::class, 'reject'])->name('reservations.reject');
+        Route::post('/reservations/{reservation}/cancel', [App\Http\Controllers\Admin\ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/payment', [App\Http\Controllers\Admin\ReservationController::class, 'updatePayment'])->name('reservations.payment');
+        Route::post('/reservations/bulk-action', [App\Http\Controllers\Admin\ReservationController::class, 'bulkAction'])->name('reservations.bulk-action');
+        Route::get('/properties/{property}/availability', [App\Http\Controllers\Admin\ReservationController::class, 'getAvailability'])->name('properties.availability');
 
         // Gestión de usuarios
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
@@ -98,6 +101,32 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::get('/users/{email}/history', [AdminController::class, 'userHistory'])->name('users.history');
         Route::get('/deactivated-users/export', [AdminController::class, 'exportDeactivatedUsers'])->name('deactivated-users.export');
         Route::post('/deactivated-users/cleanup', [AdminController::class, 'cleanupDeactivatedUsers'])->name('deactivated-users.cleanup');
+        
+        // Gestión de precios y descuentos
+        Route::prefix('pricing')->name('pricing.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\PricingController::class, 'index'])->name('index');
+            
+            // Precios por noche
+            Route::get('/nightly-prices/create', [App\Http\Controllers\Admin\PricingController::class, 'createNightlyPrice'])->name('nightly-prices.create');
+            Route::post('/nightly-prices', [App\Http\Controllers\Admin\PricingController::class, 'storeNightlyPrice'])->name('nightly-prices.store');
+            Route::get('/nightly-prices/{nightlyPrice}/edit', [App\Http\Controllers\Admin\PricingController::class, 'editNightlyPrice'])->name('nightly-prices.edit');
+            Route::put('/nightly-prices/{nightlyPrice}', [App\Http\Controllers\Admin\PricingController::class, 'updateNightlyPrice'])->name('nightly-prices.update');
+            Route::delete('/nightly-prices/{nightlyPrice}', [App\Http\Controllers\Admin\PricingController::class, 'destroyNightlyPrice'])->name('nightly-prices.destroy');
+            Route::post('/nightly-prices/{nightlyPrice}/toggle-status', [App\Http\Controllers\Admin\PricingController::class, 'toggleNightlyPriceStatus'])->name('nightly-prices.toggle-status');
+            
+            // Descuentos
+            Route::get('/discounts/create', [App\Http\Controllers\Admin\PricingController::class, 'createDiscount'])->name('discounts.create');
+            Route::post('/discounts', [App\Http\Controllers\Admin\PricingController::class, 'storeDiscount'])->name('discounts.store');
+            Route::get('/discounts/{discount}/edit', [App\Http\Controllers\Admin\PricingController::class, 'editDiscount'])->name('discounts.edit');
+            Route::put('/discounts/{discount}', [App\Http\Controllers\Admin\PricingController::class, 'updateDiscount'])->name('discounts.update');
+            Route::delete('/discounts/{discount}', [App\Http\Controllers\Admin\PricingController::class, 'destroyDiscount'])->name('discounts.destroy');
+            Route::post('/discounts/{discount}/toggle-status', [App\Http\Controllers\Admin\PricingController::class, 'toggleDiscountStatus'])->name('discounts.toggle-status');
+            
+            // API para cálculos y aplicación de descuentos
+            Route::post('/calculate-price', [App\Http\Controllers\Admin\PricingController::class, 'calculatePrice'])->name('calculate-price');
+            Route::post('/get-available-discounts', [App\Http\Controllers\Admin\PricingController::class, 'getAvailableDiscounts'])->name('get-available-discounts');
+            Route::post('/apply-discount', [App\Http\Controllers\Admin\PricingController::class, 'applyDiscountToReservation'])->name('apply-discount');
+        });
     });
 });
 

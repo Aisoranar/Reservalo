@@ -20,6 +20,9 @@
             </div>
             <div class="col-md-4 text-md-end">
                 <div class="header-actions">
+                    <a href="{{ route('admin.pricing.index') }}" class="btn btn-outline-success me-2">
+                        <i class="fas fa-dollar-sign me-2"></i>Precios
+                    </a>
                     <a href="{{ route('admin.reports') }}" class="btn btn-outline-primary me-2">
                         <i class="fas fa-chart-bar me-2"></i>Reportes
                     </a>
@@ -80,6 +83,47 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Precios y Descuentos -->
+    <div class="pricing-stats-section mb-4">
+        <div class="row g-3">
+            <div class="col-md-4 col-6">
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ $stats['active_prices'] ?? 0 }}</div>
+                        <div class="stat-label">Precios Activos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-6">
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ $stats['active_discounts'] ?? 0 }}</div>
+                        <div class="stat-label">Descuentos Activos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-6">
+                <div class="stat-card info">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">${{ number_format($stats['average_base_price'] ?? 0, 0) }}</div>
+                        <div class="stat-label">Precio Promedio</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
         </div>
     </div>
 

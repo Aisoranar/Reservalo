@@ -89,6 +89,16 @@ class Property extends Model
         return $this->hasMany(Favorite::class);
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function nightlyPrices(): HasMany
+    {
+        return $this->hasMany(NightlyPrice::class);
+    }
+
     public function averageRating(): float
     {
         return $this->rating ?? 0.0;
@@ -97,6 +107,11 @@ class Property extends Model
     public function isFeatured(): bool
     {
         return $this->featured_until && $this->featured_until->isFuture();
+    }
+
+    public function isFavoritedBy(User $user): bool
+    {
+        return $this->favorites()->where('user_id', $user->id)->exists();
     }
 
     public function getFormattedPriceAttribute(): string

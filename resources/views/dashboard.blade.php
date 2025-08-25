@@ -35,9 +35,13 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h5 class="card-title text-muted mb-1">Mis Reservas</h5>
-                            <h3 class="mb-0 fw-bold text-dark">0</h3>
+                            <h3 class="mb-0 fw-bold text-dark">{{ $stats['reservations'] }}</h3>
                             <p class="text-success mb-0 small">
-                                <i class="fas fa-arrow-up me-1"></i>Sin reservas activas
+                                @if($stats['reservations'] > 0)
+                                    <i class="fas fa-arrow-up me-1"></i>{{ $stats['reservations'] }} reserva(s) activa(s)
+                                @else
+                                    <i class="fas fa-info-circle me-1"></i>Sin reservas activas
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -56,9 +60,13 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h5 class="card-title text-muted mb-1">Favoritos</h5>
-                            <h3 class="mb-0 fw-bold text-dark">0</h3>
+                            <h3 class="mb-0 fw-bold text-dark">{{ $stats['favorites'] }}</h3>
                             <p class="text-info mb-0 small">
-                                <i class="fas fa-info-circle me-1"></i>No tienes favoritos
+                                @if($stats['favorites'] > 0)
+                                    <i class="fas fa-heart me-1"></i>{{ $stats['favorites'] }} propiedad(es) favorita(s)
+                                @else
+                                    <i class="fas fa-info-circle me-1"></i>No tienes favoritos
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -77,9 +85,13 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h5 class="card-title text-muted mb-1">Propiedades Vistas</h5>
-                            <h3 class="mb-0 fw-bold text-dark">0</h3>
+                            <h3 class="mb-0 fw-bold text-dark">{{ $stats['properties_viewed'] }}</h3>
                             <p class="text-warning mb-0 small">
-                                <i class="fas fa-clock me-1"></i>Comienza a explorar
+                                @if($stats['properties_viewed'] > 0)
+                                    <i class="fas fa-eye me-1"></i>{{ $stats['properties_viewed'] }} propiedad(es) vista(s)
+                                @else
+                                    <i class="fas fa-clock me-1"></i>Comienza a explorar
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -98,9 +110,13 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h5 class="card-title text-muted mb-1">Reseñas</h5>
-                            <h3 class="mb-0 fw-bold text-dark">0</h3>
+                            <h3 class="mb-0 fw-bold text-dark">{{ $stats['reviews'] }}</h3>
                             <p class="text-danger mb-0 small">
-                                <i class="fas fa-comment me-1"></i>Sin reseñas aún
+                                @if($stats['reviews'] > 0)
+                                    <i class="fas fa-star me-1"></i>{{ $stats['reviews'] }} reseña(s) escrita(s)
+                                @else
+                                    <i class="fas fa-comment me-1"></i>Sin reseñas aún
+                                @endif
                             </p>
                         </div>
                     </div>
@@ -139,9 +155,9 @@
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{{ route('home') }}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" style="border-color: #ffc107; color: #ffc107; min-height: 120px;">
-                                <i class="fas fa-home fa-2x mb-2"></i>
-                                <span class="fw-semibold">Ir al Inicio</span>
+                            <a href="{{ route('favorites.index') }}" class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" style="border-color: #dc3545; color: #dc3545; min-height: 120px;">
+                                <i class="fas fa-heart fa-2x mb-2"></i>
+                                <span class="fw-semibold">Mis Favoritos</span>
                             </a>
                         </div>
                     </div>
@@ -160,18 +176,169 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="text-center py-4">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h6 class="text-muted">No hay actividad reciente</h6>
-                        <p class="text-muted small">Cuando hagas reservas o interactúes con propiedades, aparecerá aquí.</p>
-                        <a href="{{ route('properties.index') }}" class="btn btn-primary">
-                            <i class="fas fa-search me-2"></i>Explorar Propiedades
-                        </a>
+                    @if($recentReservations->count() > 0 || $recentFavorites->count() > 0 || $recentReviews->count() > 0)
+                        <!-- Reservas Recientes -->
+                        @if($recentReservations->count() > 0)
+                            <div class="mb-4">
+                                <h6 class="text-primary fw-bold mb-3">
+                                    <i class="fas fa-calendar-check me-2"></i>Reservas Recientes
+                                </h6>
+                                <div class="row">
+                                    @foreach($recentReservations->take(3) as $reservation)
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card border-0 shadow-sm h-100">
+                                                @if($reservation->property->images->count() > 0)
+                                                    <img src="{{ $reservation->property->images->first()->full_url }}" 
+                                                         class="card-img-top" 
+                                                         alt="{{ $reservation->property->name }}"
+                                                         style="height: 150px; object-fit: cover;">
+                                                @endif
+                                                <div class="card-body">
+                                                    <h6 class="card-title fw-bold">{{ $reservation->property->name }}</h6>
+                                                    <p class="text-muted small mb-2">
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        {{ \Carbon\Carbon::parse($reservation->check_in)->format('d/m/Y') }} - 
+                                                        {{ \Carbon\Carbon::parse($reservation->check_out)->format('d/m/Y') }}
+                                                    </p>
+                                                    <span class="badge bg-{{ $reservation->status === 'pending' ? 'warning' : ($reservation->status === 'approved' ? 'success' : 'danger') }}">
+                                                        {{ ucfirst($reservation->status) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Favoritos Recientes -->
+                        @if($recentFavorites->count() > 0)
+                            <div class="mb-4">
+                                <h6 class="text-danger fw-bold mb-3">
+                                    <i class="fas fa-heart me-2"></i>Favoritos Recientes
+                                </h6>
+                                <div class="row">
+                                    @foreach($recentFavorites->take(3) as $favorite)
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card border-0 shadow-sm h-100">
+                                                @if($favorite->property->images->count() > 0)
+                                                    <img src="{{ $favorite->property->images->first()->full_url }}" 
+                                                         class="card-img-top" 
+                                                         alt="{{ $favorite->property->name }}"
+                                                         style="height: 150px; object-fit: cover;">
+                                                @endif
+                                                <div class="card-body">
+                                                    <h6 class="card-title fw-bold">{{ $favorite->property->name }}</h6>
+                                                    <p class="text-muted small mb-2">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                                        {{ $favorite->property->city->name ?? 'Ubicación no disponible' }}
+                                                    </p>
+                                                    <a href="{{ route('properties.show', $favorite->property) }}" class="btn btn-sm btn-outline-primary">
+                                                        Ver Propiedad
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Reseñas Recientes -->
+                        @if($recentReviews->count() > 0)
+                            <div class="mb-4">
+                                <h6 class="text-warning fw-bold mb-3">
+                                    <i class="fas fa-star me-2"></i>Reseñas Recientes
+                                </h6>
+                                <div class="row">
+                                    @foreach($recentReviews->take(3) as $review)
+                                        <div class="col-md-4 mb-3">
+                                            <div class="card border-0 shadow-sm h-100">
+                                                @if($review->property->images->count() > 0)
+                                                    <img src="{{ $review->property->images->first()->full_url }}" 
+                                                         class="card-img-top" 
+                                                         alt="{{ $review->property->name }}"
+                                                         style="height: 150px; object-fit: cover;">
+                                                @endif
+                                                <div class="card-body">
+                                                    <h6 class="card-title fw-bold">{{ $review->property->name }}</h6>
+                                                    <div class="mb-2">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }}"></i>
+                                                        @endfor
+                                                    </div>
+                                                    <p class="text-muted small">{{ Str::limit($review->comment, 80) }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No hay actividad reciente</h6>
+                            <p class="text-muted small">Cuando hagas reservas o interactúes con propiedades, aparecerá aquí.</p>
+                            <a href="{{ route('properties.index') }}" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Explorar Propiedades
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Propiedades Destacadas -->
+    @if($featuredProperties->count() > 0)
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="fas fa-star me-2 text-warning"></i>Propiedades Destacadas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach($featuredProperties as $property)
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-0 shadow-sm h-100">
+                                    @if($property->images->count() > 0)
+                                        <img src="{{ $property->images->first()->full_url }}" 
+                                             class="card-img-top" 
+                                             alt="{{ $property->name }}"
+                                             style="height: 200px; object-fit: cover;">
+                                    @endif
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold">{{ $property->name }}</h6>
+                                        <p class="text-muted small mb-2">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ $property->city->name ?? 'Ubicación no disponible' }}
+                                        </p>
+                                        <p class="text-muted small mb-2">
+                                            <i class="fas fa-users me-1"></i>
+                                            Hasta {{ $property->capacity }} personas
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="h6 text-primary mb-0">
+                                                ${{ number_format($property->price, 0) }}
+                                            </span>
+                                            <a href="{{ route('properties.show', $property) }}" class="btn btn-sm btn-primary">
+                                                Ver Detalles
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Estilos adicionales para el dashboard -->

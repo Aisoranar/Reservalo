@@ -17,6 +17,10 @@ class DatabaseSeeder extends Seeder
             ColombianCitiesSeeder::class,
             ReservaloSeeder::class,
             SamplePropertiesSeeder::class,
+                    PropertyImagesSeeder::class,
+        SampleReservationsSeeder::class,
+        DiscountsSeeder::class,
+        NightlyPricesSeeder::class,
         ]);
     }
 }

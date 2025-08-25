@@ -18,13 +18,22 @@ class Reservation extends Model
         'status',
         'rejection_reason',
         'total_price',
-        'special_requests'
+        'special_requests',
+        'payment_status',
+        'amount_paid',
+        'admin_notes',
+        'approved_at',
+        'approved_by',
+        'paid_at'
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'total_price' => 'decimal:2'
+        'total_price' => 'decimal:2',
+        'amount_paid' => 'decimal:2',
+        'approved_at' => 'datetime',
+        'paid_at' => 'datetime'
     ];
 
     public function user(): BelongsTo
@@ -75,6 +84,14 @@ class Reservation extends Model
             'rejected' => '<span class="badge bg-danger">Rechazada</span>',
             default => '<span class="badge bg-secondary">Desconocido</span>'
         };
+    }
+
+    /**
+     * Alias para total_price para compatibilidad con la vista
+     */
+    public function getTotalAmountAttribute()
+    {
+        return $this->total_price;
     }
 
     public function canBeCancelled()

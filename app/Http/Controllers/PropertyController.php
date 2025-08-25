@@ -113,9 +113,17 @@ class PropertyController extends Controller
 
     public function show(Property $property)
     {
-        $property->load(['images', 'reservations']);
+        $property->load(['images', 'reservations' => function($query) {
+            $query->whereIn('status', ['pending', 'approved', 'rejected']);
+        }]);
         
-        return view('properties.show', compact('property'));
+        // Get approved reservations for the calendar
+        $approvedReservations = $property->reservations->where('status', 'approved');
+        
+        // Cargar precios por noche
+        $property->load('nightlyPrices');
+        
+        return view('properties.show', compact('property', 'approvedReservations'));
     }
 
     public function quickView(Property $property)
