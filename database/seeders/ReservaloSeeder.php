@@ -13,48 +13,9 @@ class ReservaloSeeder extends Seeder
 {
     public function run(): void
     {
-        // Crear usuario administrador
-        $admin = User::create([
-            'name' => 'Administrador',
-            'email' => 'admin@reservalo.com',
-            'password' => Hash::make('password'),
-            'phone' => '+1234567890',
-            'whatsapp' => '+1234567890',
-            'role' => 'admin'
-        ]);
-
-        // Crear usuarios de prueba
-        $users = [
-            [
-                'name' => 'Juan Pérez',
-                'email' => 'juan@example.com',
-                'phone' => '+1234567891',
-                'whatsapp' => '+1234567891'
-            ],
-            [
-                'name' => 'María García',
-                'email' => 'maria@example.com',
-                'phone' => '+1234567892',
-                'whatsapp' => '+1234567892'
-            ],
-            [
-                'name' => 'Carlos López',
-                'email' => 'carlos@example.com',
-                'phone' => '+1234567893',
-                'whatsapp' => '+1234567893'
-            ]
-        ];
-
-        foreach ($users as $userData) {
-            User::create([
-                'name' => $userData['name'],
-                'email' => $userData['email'],
-                'password' => Hash::make('password'),
-                'phone' => $userData['phone'],
-                'whatsapp' => $userData['whatsapp'],
-                'role' => 'user'
-            ]);
-        }
+        // Obtener usuarios existentes (ya creados por UserSeeder)
+        $admin = User::where('email', 'admin@reservalo.com')->first();
+        $users = User::where('role', 'user')->get();
 
         // Crear propiedades de prueba
         $properties = [
@@ -121,7 +82,6 @@ class ReservaloSeeder extends Seeder
         }
 
         // Crear reservas de prueba
-        $users = User::where('role', 'user')->get();
         $properties = Property::all();
 
         foreach ($users as $user) {

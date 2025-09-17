@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ProfileController;
@@ -20,10 +22,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Rutas públicas
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+// Middleware global para verificar sistema activo
+Route::middleware(['system.active'])->group(function () {
+    // Rutas públicas
+    Route::get('/', function () {
+        return view('home');
+    })->name('home');
 
 Route::get('/propiedades', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/propiedades/{property}', [PropertyController::class, 'show'])->name('properties.show');
@@ -62,8 +66,42 @@ Route::middleware(['auth', 'active.user'])->group(function () {
     Route::post('/favoritos/{property}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::get('/favoritos/{property}/check', [FavoriteController::class, 'check'])->name('favorites.check');
 
+    // Membresías del usuario
+    Route::prefix('membership')->name('membership.')->group(function () {
+        Route::get('/', [MembershipController::class, 'index'])->name('index');
+        Route::get('/{plan}', [MembershipController::class, 'show'])->name('show');
+        Route::post('/{plan}/create', [MembershipController::class, 'create'])->name('create');
+        Route::get('/success/{membership}', [MembershipController::class, 'success'])->name('success');
+        Route::post('/extend', [MembershipController::class, 'extend'])->name('extend');
+        Route::post('/cancel', [MembershipController::class, 'cancel'])->name('cancel');
+        Route::get('/history', [MembershipController::class, 'history'])->name('history');
+        Route::get('/required', [MembershipController::class, 'required'])->name('required');
+        Route::get('/upgrade', [MembershipController::class, 'upgrade'])->name('upgrade');
+        Route::post('/change-plan/{plan}', [MembershipController::class, 'changePlan'])->name('change-plan');
+    });
+
+    // Panel de superadmin
+    Route::middleware(['role:superadmin', 'audit.logging'])->prefix('superadmin')->name('superadmin.')->group(function () {
+        Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
+        Route::get('/roles', [SuperAdminController::class, 'roles'])->name('roles');
+        Route::get('/permissions', [SuperAdminController::class, 'permissions'])->name('permissions');
+        Route::get('/membership-plans', [SuperAdminController::class, 'membershipPlans'])->name('membership-plans');
+        Route::get('/memberships', [SuperAdminController::class, 'memberships'])->name('memberships');
+        Route::get('/settings', [SuperAdminController::class, 'settings'])->name('settings');
+        Route::post('/settings', [SuperAdminController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/settings/reset', [SuperAdminController::class, 'resetSettings'])->name('settings.reset');
+        Route::post('/toggle-system', [SuperAdminController::class, 'toggleSystemStatus'])->name('toggle-system');
+        Route::post('/toggle-maintenance', [SuperAdminController::class, 'toggleMaintenanceMode'])->name('toggle-maintenance');
+        Route::get('/reports', [SuperAdminController::class, 'reports'])->name('reports');
+        Route::get('/reports/export', [SuperAdminController::class, 'exportReports'])->name('reports.export');
+        Route::get('/audit-logs', [SuperAdminController::class, 'auditLogs'])->name('audit-logs');
+        Route::get('/audit-logs/export', [SuperAdminController::class, 'exportAuditLogs'])->name('audit-logs.export');
+        Route::post('/audit-logs/cleanup', [SuperAdminController::class, 'cleanupAuditLogs'])->name('audit-logs.cleanup');
+    });
+
     // Panel de administración
-    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/properties', [AdminController::class, 'properties'])->name('properties.index');
         Route::get('/reservations', [AdminController::class, 'reservations'])->name('reservations');
@@ -128,6 +166,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
             Route::post('/apply-discount', [App\Http\Controllers\Admin\PricingController::class, 'applyDiscountToReservation'])->name('apply-discount');
         });
     });
+});
 });
 
 // Rutas de autenticación (se generarán automáticamente con Breeze)

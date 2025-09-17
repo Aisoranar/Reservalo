@@ -90,6 +90,66 @@
                 min-width: 200px;
             }
             
+            /* Estilos para submenús desplegables */
+            .dropdown-submenu {
+                position: relative;
+            }
+            
+            .dropdown-submenu .dropdown-menu {
+                top: 0;
+                left: 100%;
+                margin-top: -1px;
+                margin-left: 0.125rem;
+                min-width: 200px;
+                border-radius: 8px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                background: rgba(255,255,255,0.98);
+                backdrop-filter: blur(15px);
+                border: 1px solid rgba(0,0,0,0.08);
+            }
+            
+            .dropdown-submenu:hover .dropdown-menu {
+                display: block;
+            }
+            
+            .dropdown-submenu .dropdown-toggle::after {
+                transform: rotate(-90deg);
+                margin-left: 0.5rem;
+            }
+            
+            /* Estilos especiales para el menú de Super Admin */
+            .navbar-nav .nav-link[href="#"]:hover {
+                background-color: rgba(255,255,255,0.15);
+            }
+            
+            .dropdown-menu .dropdown-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                font-weight: 600;
+                padding: 0.75rem 1rem;
+                margin: -0.4rem 0 0.5rem 0;
+                border-radius: 8px 8px 0 0;
+            }
+            
+            .dropdown-menu .dropdown-item {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+                border-radius: 4px;
+                margin: 0.1rem 0.5rem;
+            }
+            
+            .dropdown-menu .dropdown-item:hover {
+                background-color: rgba(102, 126, 234, 0.1);
+                color: #667eea;
+                transform: translateX(5px);
+            }
+            
+            .dropdown-menu .dropdown-item i {
+                width: 20px;
+                text-align: center;
+            }
+            
             @keyframes fadeInDown {
                 from {
                     opacity: 0;
@@ -535,5 +595,42 @@
         
         <!-- Estilos personalizados -->
         @stack('styles')
+        
+        <!-- Script para submenús desplegables -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Manejar submenús desplegables
+                const submenuToggles = document.querySelectorAll('.dropdown-submenu .dropdown-toggle');
+                
+                submenuToggles.forEach(function(toggle) {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const submenu = this.nextElementSibling;
+                        const isOpen = submenu.style.display === 'block';
+                        
+                        // Cerrar todos los submenús
+                        document.querySelectorAll('.dropdown-submenu .dropdown-menu').forEach(function(menu) {
+                            menu.style.display = 'none';
+                        });
+                        
+                        // Abrir/cerrar el submenú actual
+                        if (!isOpen) {
+                            submenu.style.display = 'block';
+                        }
+                    });
+                });
+                
+                // Cerrar submenús al hacer clic fuera
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown-submenu')) {
+                        document.querySelectorAll('.dropdown-submenu .dropdown-menu').forEach(function(menu) {
+                            menu.style.display = 'none';
+                        });
+                    }
+                });
+            });
+        </script>
     </body>
 </html>

@@ -118,7 +118,96 @@
                 </li>
 
                 @auth
-                    @if(auth()->user()->isAdmin())
+                    @if(auth()->user()->isSuperAdmin())
+                        <!-- Menú especial para Super Administrador -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-crown me-1 text-warning"></i>Super Admin
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-lg-end">
+                                <li><h6 class="dropdown-header text-warning fw-bold">👑 Panel de Super Administración</h6></li>
+                                
+                                <!-- Gestión del Sistema -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-cogs me-2 text-primary"></i>Sistema
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.dashboard') }}">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.settings') }}">
+                                            <i class="fas fa-sliders-h me-2"></i>Configuraciones
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.audit-logs') }}">
+                                            <i class="fas fa-history me-2"></i>Auditoría
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Gestión de Usuarios -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-users me-2 text-success"></i>Usuarios
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.users') }}">
+                                            <i class="fas fa-list me-2"></i>Lista de Usuarios
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.roles') }}">
+                                            <i class="fas fa-user-tag me-2"></i>Roles
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.permissions') }}">
+                                            <i class="fas fa-key me-2"></i>Permisos
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Gestión de Membresías -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-gem me-2 text-info"></i>Membresías
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.membership-plans') }}">
+                                            <i class="fas fa-list-alt me-2"></i>Planes
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.memberships') }}">
+                                            <i class="fas fa-users-cog me-2"></i>Gestionar
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Reportes -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-chart-bar me-2 text-warning"></i>Reportes
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reports') }}">
+                                            <i class="fas fa-chart-line me-2"></i>Generales
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reports', ['type' => 'users']) }}">
+                                            <i class="fas fa-user-chart me-2"></i>Usuarios
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reports', ['type' => 'memberships']) }}">
+                                            <i class="fas fa-gem me-2"></i>Membresías
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Acciones Rápidas -->
+                                <li><a class="dropdown-item" href="{{ route('superadmin.toggle-system') }}">
+                                    <i class="fas fa-power-off me-2 text-danger"></i>Activar/Desactivar Sistema
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ route('superadmin.toggle-maintenance') }}">
+                                    <i class="fas fa-tools me-2 text-warning"></i>Modo Mantenimiento
+                                </a></li>
+                            </ul>
+                        </li>
+                    @elseif(auth()->user()->isAdmin())
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
                                 <i class="fas fa-tachometer-alt me-1"></i>Admin
