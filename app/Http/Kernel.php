@@ -71,6 +71,7 @@ class Kernel extends HttpKernel
         'temp.account.security' => \App\Http\Middleware\CheckTempAccountSecurity::class,
         'permission' => \App\Http\Middleware\CheckPermission::class,
         'membership' => \App\Http\Middleware\CheckMembership::class,
+        'membership.access' => \App\Http\Middleware\RedirectMembershipAccess::class,
         'system.active' => \App\Http\Middleware\CheckSystemActive::class,
         'audit.logging' => \App\Http\Middleware\AuditLogging::class,
     ];

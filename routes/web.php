@@ -66,19 +66,8 @@ Route::middleware(['auth', 'active.user', 'must.change.password'])->group(functi
     Route::post('/favoritos/{property}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::get('/favoritos/{property}/check', [FavoriteController::class, 'check'])->name('favorites.check');
 
-    // Membresías del usuario
-    Route::prefix('membership')->name('membership.')->group(function () {
-        Route::get('/', [MembershipController::class, 'index'])->name('index');
-        Route::get('/{plan}', [MembershipController::class, 'show'])->name('show');
-        Route::post('/{plan}/create', [MembershipController::class, 'create'])->name('create');
-        Route::get('/success/{membership}', [MembershipController::class, 'success'])->name('success');
-        Route::post('/extend', [MembershipController::class, 'extend'])->name('extend');
-        Route::post('/cancel', [MembershipController::class, 'cancel'])->name('cancel');
-        Route::get('/history', [MembershipController::class, 'history'])->name('history');
-        Route::get('/required', [MembershipController::class, 'required'])->name('required');
-        Route::get('/upgrade', [MembershipController::class, 'upgrade'])->name('upgrade');
-        Route::post('/change-plan/{plan}', [MembershipController::class, 'changePlan'])->name('change-plan');
-    });
+    // Las membresías son gestionadas solo por administradores
+    // Los usuarios regulares no tienen acceso a gestión de membresías
 
     // Panel de superadmin
     Route::middleware(['role:superadmin', 'audit.logging'])->prefix('superadmin')->name('superadmin.')->group(function () {

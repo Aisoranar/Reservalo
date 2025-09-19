@@ -230,7 +230,7 @@
                                 <li>
                                     <form method="POST" action="{{ route('superadmin.toggle-system') }}" style="display: inline;">
                                         @csrf
-                                        <button type="submit" class="dropdown-item btn btn-link text-start p-0 w-100" 
+                                        <button type="submit" class="dropdown-item text-start w-100 border-0 bg-transparent" 
                                                 onclick="return confirm('¿Estás seguro de que quieres cambiar el estado del sistema?')">
                                             <i class="fas fa-power-off me-2 text-danger"></i>Activar/Desactivar Sistema
                                         </button>
@@ -239,7 +239,7 @@
                                 <li>
                                     <form method="POST" action="{{ route('superadmin.toggle-maintenance') }}" style="display: inline;">
                                         @csrf
-                                        <button type="submit" class="dropdown-item btn btn-link text-start p-0 w-100" 
+                                        <button type="submit" class="dropdown-item text-start w-100 border-0 bg-transparent" 
                                                 onclick="return confirm('¿Estás seguro de que quieres cambiar el modo de mantenimiento?')">
                                             <i class="fas fa-tools me-2 text-warning"></i>Modo Mantenimiento
                                         </button>

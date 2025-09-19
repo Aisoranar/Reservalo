@@ -56,21 +56,30 @@ class EmailTemplate extends Model
         $body = $this->body;
         $bodyText = $this->body_text;
 
+        // Función para reemplazar variables en un texto
+        $replaceVariables = function($text, $data) {
+            foreach ($data as $key => $value) {
+                // Escapar caracteres especiales para regex
+                $escapedKey = preg_quote($key, '/');
+                
+                // Patrón regex para capturar diferentes formatos de variables
+                // {{ $variable }}, {{$variable}}, {{ $variable}}, {{$variable }}
+                $pattern = '/\{\{\s*\$?' . $escapedKey . '\s*\}\}/';
+                
+                $text = preg_replace($pattern, $value, $text);
+            }
+            return $text;
+        };
+
         // Reemplazar variables en el asunto
-        foreach ($data as $key => $value) {
-            $subject = str_replace("{{$key}}", $value, $subject);
-        }
+        $subject = $replaceVariables($subject, $data);
 
         // Reemplazar variables en el cuerpo HTML
-        foreach ($data as $key => $value) {
-            $body = str_replace("{{$key}}", $value, $body);
-        }
+        $body = $replaceVariables($body, $data);
 
         // Reemplazar variables en el cuerpo de texto plano
         if ($bodyText) {
-            foreach ($data as $key => $value) {
-                $bodyText = str_replace("{{$key}}", $value, $bodyText);
-            }
+            $bodyText = $replaceVariables($bodyText, $data);
         }
 
         return [

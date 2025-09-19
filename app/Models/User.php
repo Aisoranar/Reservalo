@@ -390,36 +390,43 @@ class User extends Authenticatable
     }
 
     /**
-     * Verificar si tiene membresía activa
+     * Verificar si tiene membresía activa (simplificado - solo para admins)
      */
     public function hasActiveMembership(): bool
     {
-        return $this->currentMembership && $this->currentMembership->isActive();
+        // Solo los admins y superadmins pueden tener membresías
+        // Los usuarios regulares solo necesitan estar activos
+        return $this->isSuperAdmin() || $this->isAdmin() || $this->is_active;
     }
 
     /**
-     * Verificar si la membresía está próxima a expirar
+     * Verificar si la membresía está próxima a expirar (simplificado)
      */
     public function isMembershipExpiringSoon(int $days = 7): bool
     {
-        return $this->currentMembership && $this->currentMembership->isExpiringSoon($days);
+        // Los usuarios regulares no tienen membresías que expiren
+        return false;
     }
 
     /**
-     * Obtener membresía activa
+     * Obtener membresía activa (simplificado)
      */
     public function getActiveMembership(): ?Membership
     {
-        return $this->currentMembership && $this->currentMembership->isActive() 
-            ? $this->currentMembership 
-            : null;
+        // Los usuarios regulares no tienen membresías individuales
+        return null;
     }
 
     /**
-     * Crear nueva membresía
+     * Crear nueva membresía (solo para admins)
      */
-    public function createMembership(MembershipPlan $plan, array $options = []): Membership
+    public function createMembership(MembershipPlan $plan, array $options = []): ?Membership
     {
+        // Solo los admins pueden crear membresías
+        if (!$this->isAdmin() && !$this->isSuperAdmin()) {
+            return null;
+        }
+        
         $membership = Membership::createForUser($this, $plan, $options);
         
         // Actualizar usuario con nueva membresía
@@ -433,10 +440,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Extender membresía actual
+     * Extender membresía actual (solo para admins)
      */
     public function extendMembership(int $days): bool
     {
+        // Solo los admins pueden extender membresías
+        if (!$this->isAdmin() && !$this->isSuperAdmin()) {
+            return false;
+        }
+        
         if (!$this->currentMembership) {
             return false;
         }
@@ -451,10 +463,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Cancelar membresía actual
+     * Cancelar membresía actual (solo para admins)
      */
     public function cancelMembership(string $reason = null): bool
     {
+        // Solo los admins pueden cancelar membresías
+        if (!$this->isAdmin() && !$this->isSuperAdmin()) {
+            return false;
+        }
+        
         if (!$this->currentMembership) {
             return false;
         }
@@ -470,29 +487,23 @@ class User extends Authenticatable
     }
 
     /**
-     * Verificar si puede crear más propiedades según su plan
+     * Verificar si puede crear más propiedades (simplificado)
      */
     public function canCreateProperty(): bool
     {
-        if (!$this->currentMembership) {
-            return false;
-        }
-
-        $currentCount = $this->properties()->count();
-        return $this->currentMembership->plan->allowsProperties($currentCount + 1);
+        // Los usuarios regulares pueden crear propiedades si están activos
+        // Los admins siempre pueden crear propiedades
+        return $this->is_active || $this->isAdmin() || $this->isSuperAdmin();
     }
 
     /**
-     * Verificar si puede crear más reservas según su plan
+     * Verificar si puede crear más reservas (simplificado)
      */
     public function canCreateReservation(): bool
     {
-        if (!$this->currentMembership) {
-            return false;
-        }
-
-        $currentCount = $this->reservations()->count();
-        return $this->currentMembership->plan->allowsReservations($currentCount + 1);
+        // Los usuarios regulares pueden crear reservas si están activos
+        // Los admins siempre pueden crear reservas
+        return $this->is_active || $this->isAdmin() || $this->isSuperAdmin();
     }
 
     /**

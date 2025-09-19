@@ -21,32 +21,15 @@ class CheckMembership
 
         $user = auth()->user();
 
-        // Superadmin y admin no necesitan membresía
+        // Superadmin y admin siempre tienen acceso
         if ($user->isSuperAdmin() || $user->isAdmin()) {
             return $next($request);
         }
 
-        // Verificar si tiene membresía activa
-        if (!$user->hasActiveMembership()) {
-            return redirect()->route('membership.required')
-                ->with('error', 'Necesitas una membresía activa para acceder a esta funcionalidad.');
-        }
-
-        // Verificar permisos específicos según la acción
-        switch ($action) {
-            case 'create_property':
-                if (!$user->canCreateProperty()) {
-                    return redirect()->route('membership.upgrade')
-                        ->with('error', 'Tu plan actual no permite crear más propiedades.');
-                }
-                break;
-                
-            case 'create_reservation':
-                if (!$user->canCreateReservation()) {
-                    return redirect()->route('membership.upgrade')
-                        ->with('error', 'Tu plan actual no permite crear más reservas.');
-                }
-                break;
+        // Los usuarios regulares solo necesitan estar activos (no membresías individuales)
+        if (!$user->is_active) {
+            return redirect()->route('login')
+                ->with('error', 'Tu cuenta ha sido desactivada. Contacta al administrador.');
         }
 
         return $next($request);

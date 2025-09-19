@@ -527,6 +527,34 @@
     animation: pulse-glow 2s infinite;
 }
 
+.calendar-day.blocked-range {
+    background: linear-gradient(45deg, #ffa726, #ffb74d) !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    font-weight: 600;
+    border: 2px dashed #ff9800 !important;
+    position: relative;
+}
+
+.calendar-day.blocked-range:hover {
+    transform: none !important;
+    background: linear-gradient(45deg, #ffa726, #ffb74d) !important;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.calendar-day.blocked-range::before {
+    content: '⚠';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
 @keyframes pulse-glow {
     0% { 
         box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
@@ -543,15 +571,32 @@
 }
 
 .calendar-day.occupied {
-    background: linear-gradient(45deg, #ff9a9e, #fecfef);
-    color: #d63384;
-    cursor: not-allowed;
-    opacity: 0.7;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e) !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+    font-weight: 700;
+    border: 2px solid #ff4757 !important;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+    position: relative;
 }
 
 .calendar-day.occupied:hover {
-    transform: none;
-    background: linear-gradient(45deg, #ff9a9e, #fecfef);
+    transform: none !important;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e) !important;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.5);
+}
+
+.calendar-day.occupied::before {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .calendar-day.disabled {
@@ -566,19 +611,39 @@
 /* Indicador de ocupado */
 .occupied-indicator {
     position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 6px;
-    height: 6px;
-    background: #ff4757;
+    top: 1px;
+    right: 1px;
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border: 1px solid #ff4757;
     border-radius: 50%;
-    animation: pulse 2s infinite;
+    animation: pulse-occupied 2s infinite;
+    z-index: 2;
 }
 
 @keyframes pulse {
     0% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.2); opacity: 0.7; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse-occupied {
+    0% { 
+        transform: scale(1); 
+        opacity: 1; 
+        background: #ffffff;
+    }
+    50% { 
+        transform: scale(1.3); 
+        opacity: 0.8; 
+        background: #ff4757;
+    }
+    100% { 
+        transform: scale(1); 
+        opacity: 1; 
+        background: #ffffff;
+    }
 }
 
 /* Fechas seleccionadas compactas */
@@ -888,6 +953,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar controles de selección múltiple
     initializeMultiSelectControls();
+    
+    // Cargar fechas ocupadas si ya hay una propiedad seleccionada
+    if (propertySelect.value) {
+        fetchOccupiedDates(propertySelect.value);
+    }
 
     // Función para obtener fechas ocupadas
     async function fetchOccupiedDates(propertyId) {
@@ -897,14 +967,333 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
+            // Mostrar indicador de carga
+            showLoadingIndicator();
+            
             const response = await fetch(`/superadmin/reservations/occupied-dates?property_id=${propertyId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
             occupiedDates = data.occupied_dates || [];
-            console.log('Fechas ocupadas:', occupiedDates);
+            console.log('Fechas ocupadas cargadas:', occupiedDates);
+            
+            // Mostrar mensaje de éxito
+            showOccupiedDatesInfo(occupiedDates.length);
+            
         } catch (error) {
             console.error('Error obteniendo fechas ocupadas:', error);
             occupiedDates = [];
+            showErrorIndicator('Error cargando fechas ocupadas');
         }
+    }
+    
+    // Función para mostrar indicador de carga
+    function showLoadingIndicator() {
+        const container = document.querySelector('.availability-container');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                <span>Cargando fechas ocupadas...</span>
+            </div>
+        `;
+    }
+    
+    // Función para mostrar información de fechas ocupadas
+    function showOccupiedDatesInfo(count) {
+        const container = document.querySelector('.availability-container');
+        if (!container) return;
+        
+        if (count > 0) {
+            container.innerHTML = `
+                <div class="alert alert-warning d-flex align-items-center">
+                    <i class="fas fa-calendar-times me-2"></i>
+                    <span>Se encontraron ${count} fecha(s) ocupada(s) para esta propiedad</span>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="alert alert-success d-flex align-items-center">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    <span>No hay fechas ocupadas para esta propiedad</span>
+                </div>
+            `;
+        }
+    }
+    
+    // Función para mostrar error
+    function showErrorIndicator(message) {
+        const container = document.querySelector('.availability-container');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="alert alert-danger d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+    }
+    
+    // Función para mostrar advertencia de fecha ocupada
+    function showOccupiedDateWarning(dayDate) {
+        const container = document.querySelector('.availability-container');
+        if (!container) return;
+        
+        const dateFormatted = dayDate.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        
+        container.innerHTML = `
+            <div class="alert alert-danger d-flex align-items-center">
+                <i class="fas fa-calendar-times me-2"></i>
+                <div>
+                    <strong>Fecha ocupada:</strong> ${dateFormatted}<br>
+                    <small>Esta fecha no está disponible para reservas</small>
+                </div>
+            </div>
+        `;
+        
+        // Auto-ocultar después de 3 segundos
+        setTimeout(() => {
+            if (occupiedDates.length > 0) {
+                showOccupiedDatesInfo(occupiedDates.length);
+            }
+        }, 3000);
+    }
+    
+    // Función para validar que no haya fechas ocupadas en un rango
+    function validateDateRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        // Verificar cada día del rango
+        while (start <= end) {
+            const dateString = start.toISOString().split('T')[0];
+            if (isDateOccupied(dateString)) {
+                return false; // Hay al menos una fecha ocupada
+            }
+            start.setDate(start.getDate() + 1);
+        }
+        
+        return true; // El rango está completamente disponible
+    }
+    
+    // Función para mostrar advertencia de rango ocupado
+    function showRangeOccupiedWarning(startDate, endDate) {
+        const container = document.querySelector('.availability-container');
+        if (!container) return;
+        
+        const startFormatted = startDate.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        const endFormatted = endDate.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        
+        // Encontrar fechas ocupadas en el rango
+        const occupiedInRange = findOccupiedDatesInRange(startDate, endDate);
+        const occupiedDatesFormatted = occupiedInRange.map(date => 
+            new Date(date).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit'
+            })
+        ).join(', ');
+        
+        container.innerHTML = `
+            <div class="alert alert-danger d-flex align-items-center">
+                <i class="fas fa-calendar-times me-2"></i>
+                <div>
+                    <strong>Rango no disponible:</strong> ${startFormatted} - ${endFormatted}<br>
+                    <small>Fechas ocupadas en el rango: ${occupiedDatesFormatted}</small><br>
+                    <small class="text-muted">Selecciona un rango sin fechas ocupadas</small>
+                </div>
+            </div>
+        `;
+        
+        // Auto-ocultar después de 5 segundos
+        setTimeout(() => {
+            if (occupiedDates.length > 0) {
+                showOccupiedDatesInfo(occupiedDates.length);
+            }
+        }, 5000);
+    }
+    
+    // Función para encontrar fechas ocupadas en un rango
+    function findOccupiedDatesInRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const occupiedInRange = [];
+        
+        while (start <= end) {
+            const dateString = start.toISOString().split('T')[0];
+            if (isDateOccupied(dateString)) {
+                occupiedInRange.push(dateString);
+            }
+            start.setDate(start.getDate() + 1);
+        }
+        
+        return occupiedInRange;
+    }
+    
+    // Función para mostrar advertencia de fecha bloqueada para rango
+    function showBlockedRangeWarning(dayDate) {
+        const container = document.querySelector('.availability-container');
+        if (!container) return;
+        
+        const dateFormatted = dayDate.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        
+        const startFormatted = selectedStartDate.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        
+        // Encontrar fechas ocupadas en el rango
+        const occupiedInRange = findOccupiedDatesInRange(selectedStartDate, dayDate);
+        const occupiedDatesFormatted = occupiedInRange.map(date => 
+            new Date(date).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit'
+            })
+        ).join(', ');
+        
+        container.innerHTML = `
+            <div class="alert alert-warning d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div>
+                    <strong>Rango bloqueado:</strong> ${startFormatted} - ${dateFormatted}<br>
+                    <small>Fechas ocupadas en el rango: ${occupiedDatesFormatted}</small><br>
+                    <small class="text-muted">Selecciona una fecha anterior o después del bloque ocupado</small>
+                </div>
+            </div>
+        `;
+        
+        // Auto-ocultar después de 4 segundos
+        setTimeout(() => {
+            if (occupiedDates.length > 0) {
+                showOccupiedDatesInfo(occupiedDates.length);
+            }
+        }, 4000);
+    }
+    
+    // Función para sugerir fechas alternativas
+    function suggestAlternativeDates(startDate, endDate) {
+        const container = document.querySelector('.availability-container');
+        if (!container) return;
+        
+        const startFormatted = startDate.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        const endFormatted = endDate.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        
+        // Encontrar fechas ocupadas en el rango
+        const occupiedInRange = findOccupiedDatesInRange(startDate, endDate);
+        const occupiedDatesFormatted = occupiedInRange.map(date => 
+            new Date(date).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit'
+            })
+        ).join(', ');
+        
+        // Buscar fechas alternativas
+        const alternatives = findAlternativeRanges(startDate, endDate);
+        
+        let alternativesHtml = '';
+        if (alternatives.length > 0) {
+            alternativesHtml = `
+                <div class="mt-2">
+                    <strong>Fechas alternativas sugeridas:</strong><br>
+                    ${alternatives.map(alt => 
+                        `<small class="text-success">• ${alt.start} - ${alt.end}</small>`
+                    ).join('<br>')}
+                </div>
+            `;
+        }
+        
+        container.innerHTML = `
+            <div class="alert alert-info d-flex align-items-start">
+                <i class="fas fa-lightbulb me-2 mt-1"></i>
+                <div>
+                    <strong>Rango no disponible:</strong> ${startFormatted} - ${endFormatted}<br>
+                    <small class="text-muted">Fechas ocupadas: ${occupiedDatesFormatted}</small>
+                    ${alternativesHtml}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Función para encontrar rangos alternativos
+    function findAlternativeRanges(startDate, endDate) {
+        const alternatives = [];
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const rangeLength = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Buscar antes del rango original
+        for (let i = 1; i <= 7; i++) {
+            const altStart = new Date(start);
+            altStart.setDate(start.getDate() - i);
+            const altEnd = new Date(altStart);
+            altEnd.setDate(altStart.getDate() + rangeLength - 1);
+            
+            if (validateDateRange(altStart, altEnd)) {
+                alternatives.push({
+                    start: altStart.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit'
+                    }),
+                    end: altEnd.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit'
+                    })
+                });
+                if (alternatives.length >= 2) break;
+            }
+        }
+        
+        // Buscar después del rango original
+        for (let i = 1; i <= 7; i++) {
+            const altStart = new Date(start);
+            altStart.setDate(start.getDate() + i);
+            const altEnd = new Date(altStart);
+            altEnd.setDate(altStart.getDate() + rangeLength - 1);
+            
+            if (validateDateRange(altStart, altEnd)) {
+                alternatives.push({
+                    start: altStart.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit'
+                    }),
+                    end: altEnd.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit'
+                    })
+                });
+                if (alternatives.length >= 4) break;
+            }
+        }
+        
+        return alternatives.slice(0, 3); // Máximo 3 alternativas
     }
 
     // Función para verificar si una fecha está ocupada
@@ -988,6 +1377,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cargar fechas ocupadas cuando cambie la propiedad
     propertySelect.addEventListener('change', async function() {
         await fetchOccupiedDates(this.value);
+        // Actualizar el calendario para mostrar las fechas ocupadas
+        renderCalendar();
         checkDateAvailability();
     });
 
@@ -1295,6 +1686,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const indicator = document.createElement('div');
             indicator.className = 'occupied-indicator';
             dayElement.appendChild(indicator);
+            
+            // Agregar tooltip para fechas ocupadas
+            dayElement.title = 'Esta fecha está ocupada - No disponible';
         }
         
         // Verificar si está deshabilitado (fechas pasadas)
@@ -1327,9 +1721,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Agregar indicador visual de estado de selección
         if (isSelectingEndDate && selectedStartDate && dayDate > selectedStartDate) {
-            dayElement.classList.add('selectable-end');
-            // Agregar tooltip
-            dayElement.title = 'Click para seleccionar fecha de salida';
+            // Verificar si el rango sería válido antes de marcar como seleccionable
+            if (validateDateRange(selectedStartDate, dayDate)) {
+                dayElement.classList.add('selectable-end');
+                dayElement.title = 'Click para seleccionar fecha de salida';
+            } else {
+                // Marcar como bloqueado para selección de rango
+                dayElement.classList.add('blocked-range');
+                dayElement.title = 'Esta fecha no se puede seleccionar - Hay fechas ocupadas en el rango';
+            }
         }
         
         // Event listener para selección
@@ -1340,9 +1740,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function handleDayClick(dayDate, dayElement) {
         // No permitir selección de días ocupados o deshabilitados
-        if (dayElement.classList.contains('occupied') || 
-            dayElement.classList.contains('disabled') || 
+        if (dayElement.classList.contains('occupied')) {
+            showOccupiedDateWarning(dayDate);
+            return;
+        }
+        
+        if (dayElement.classList.contains('disabled') || 
             dayElement.classList.contains('other-month')) {
+            return;
+        }
+        
+        // No permitir selección de fechas bloqueadas para rango
+        if (dayElement.classList.contains('blocked-range')) {
+            showBlockedRangeWarning(dayDate);
             return;
         }
         
@@ -1369,23 +1779,36 @@ document.addEventListener('DOMContentLoaded', function() {
             isSelectingEndDate = true;
             console.log('Seleccionada fecha de inicio:', dayDate.toLocaleDateString());
         } else if (selectedStartDate && !selectedEndDate) {
-            // Segunda selección: fecha de fin
-            if (dayDate.getTime() === selectedStartDate.getTime()) {
-                // Si es la misma fecha, establecer como fecha de fin (reserva de un día)
-                selectedEndDate = dayDate;
-                isSelectingEndDate = false;
-                console.log('Reserva de un día - Inicio:', selectedStartDate.toLocaleDateString(), 'Fin:', selectedEndDate.toLocaleDateString());
-            } else if (dayDate < selectedStartDate) {
-                // Si la fecha es anterior, intercambiar
-                selectedEndDate = selectedStartDate;
-                selectedStartDate = dayDate;
-                isSelectingEndDate = false;
-                console.log('Fechas intercambiadas - Inicio:', selectedStartDate.toLocaleDateString(), 'Fin:', selectedEndDate.toLocaleDateString());
+            // Segunda selección: fecha de fin - VALIDAR RANGO COMPLETO
+            const startDate = selectedStartDate;
+            const endDate = dayDate;
+            
+            // Determinar el rango correcto (inicio y fin)
+            let actualStartDate, actualEndDate;
+            if (dayDate.getTime() === startDate.getTime()) {
+                // Misma fecha: reserva de un día
+                actualStartDate = startDate;
+                actualEndDate = dayDate;
+            } else if (dayDate < startDate) {
+                // Fecha anterior: intercambiar
+                actualStartDate = dayDate;
+                actualEndDate = startDate;
             } else {
-                // Fecha posterior: establecer como fin
-                selectedEndDate = dayDate;
+                // Fecha posterior: rango normal
+                actualStartDate = startDate;
+                actualEndDate = dayDate;
+            }
+            
+            // VALIDAR QUE NO HAYA FECHAS OCUPADAS EN EL RANGO
+            if (validateDateRange(actualStartDate, actualEndDate)) {
+                selectedStartDate = actualStartDate;
+                selectedEndDate = actualEndDate;
                 isSelectingEndDate = false;
-                console.log('Seleccionada fecha de fin:', dayDate.toLocaleDateString());
+                console.log('Rango válido seleccionado - Inicio:', selectedStartDate.toLocaleDateString(), 'Fin:', selectedEndDate.toLocaleDateString());
+            } else {
+                // Mostrar error y sugerir fechas alternativas
+                suggestAlternativeDates(actualStartDate, actualEndDate);
+                return;
             }
         } else {
             // Ya hay ambas fechas seleccionadas: reiniciar con nueva fecha de inicio

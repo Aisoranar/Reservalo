@@ -10,6 +10,12 @@ class DiscountsSeeder extends Seeder
 {
     public function run(): void
     {
+        // Verificar si ya existen descuentos para evitar duplicados
+        if (Discount::count() > 0) {
+            $this->command->info('Los descuentos ya existen. Saltando...');
+            return;
+        }
+
         $discounts = [
             [
                 'name' => 'Descuento por estadía larga',
@@ -112,5 +118,7 @@ class DiscountsSeeder extends Seeder
         foreach ($discounts as $discountData) {
             Discount::create($discountData);
         }
+
+        $this->command->info('Descuentos creados exitosamente: ' . count($discounts) . ' registros');
     }
 }

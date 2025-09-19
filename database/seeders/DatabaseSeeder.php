@@ -19,15 +19,29 @@ class DatabaseSeeder extends Seeder
             MembershipPlanSeeder::class,
             UserSeeder::class,
             
-            // Seeders existentes
+            // Seeders de ubicaciones
             ColombianDepartmentsSeeder::class,
             ColombianCitiesSeeder::class,
+            
+            // Seeders de propiedades
             ReservaloSeeder::class,
             SamplePropertiesSeeder::class,
             PropertyImagesSeeder::class,
-            SampleReservationsSeeder::class,
-            DiscountsSeeder::class,
+            
+            // Seeders de precios (en orden correcto)
+            GlobalPricingSeeder::class,
             NightlyPricesSeeder::class,
+            DiscountsSeeder::class,
+            
+            // Seeders de reservas (después de precios)
+            SampleReservationsSeeder::class,
+            
+            // Seeders de plantillas de email
+            TempAccountEmailTemplateSeeder::class,
+            AddReservationDeletedEmailTemplateSeeder::class,
+            
+            // Seeders de permisos adicionales
+            AddDeleteReservationsPermissionSeeder::class,
         ]);
     }
 }
