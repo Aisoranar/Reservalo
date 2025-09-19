@@ -30,17 +30,27 @@ Route::middleware(['system.active'])->group(function () {
 Route::get('/propiedades', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/propiedades/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
+// Ruta pública para crear reservas (usuarios autenticados)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/reservar', [ReservationController::class, 'create'])->name('reservations.create');
+    Route::post('/reservar', [ReservationController::class, 'store'])->name('reservations.store.public');
+});
+
 // Rutas para ubicaciones (Colombia)
 Route::get('/api/departments', [LocationController::class, 'getDepartments'])->name('api.departments');
 Route::get('/api/cities', [LocationController::class, 'getAllCities'])->name('api.cities');
 Route::get('/api/cities/search', [LocationController::class, 'searchCities'])->name('api.cities.search');
 Route::get('/api/cities/by-department', [LocationController::class, 'getCitiesByDepartment'])->name('api.cities.by-department');
+Route::get('/api/cities/{department}', [LocationController::class, 'getCitiesByDepartmentId'])->name('api.cities.by-department-id');
 
 // API para vista rápida (pública)
 Route::get('/api/properties/{property}/quick-view', [PropertyController::class, 'quickView'])->name('api.properties.quick-view');
 
 // API para fechas ocupadas (pública)
 Route::get('/api/properties/{property}/occupied-dates', [PropertyController::class, 'getOccupiedDates'])->name('api.properties.occupied-dates');
+
+// API para cálculo de precios (pública)
+Route::post('/api/properties/{property}/calculate-price', [PropertyController::class, 'calculatePrice'])->name('api.properties.calculate-price');
 
 
 

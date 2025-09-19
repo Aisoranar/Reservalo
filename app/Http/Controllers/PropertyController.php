@@ -119,7 +119,18 @@ class PropertyController extends Controller
             'active_global_pricing' => $activeGlobalPricing
         ];
 
-        return view('properties.index', compact('properties', 'stats'));
+        // Obtener departamentos y ciudades para los filtros
+        $departments = \App\Models\Department::orderBy('name')->get();
+        $cities = null;
+        
+        // Si hay un departamento seleccionado, cargar sus ciudades
+        if ($request->filled('department')) {
+            $cities = \App\Models\City::where('department_id', $request->department)
+                ->orderBy('name')
+                ->get();
+        }
+
+        return view('properties.index', compact('properties', 'stats', 'departments', 'cities'));
     }
 
     public function show(Property $property)
@@ -324,6 +335,46 @@ class PropertyController extends Controller
 
         $status = $property->is_active ? 'activada' : 'desactivada';
         return back()->with('success', "Propiedad {$status} exitosamente");
+    }
+
+    /**
+     * Calcular precio para una reserva (API pública)
+     */
+    public function calculatePrice(Request $request, Property $property)
+    {
+        $request->validate([
+            'check_in' => 'required|date|after_or_equal:today',
+            'check_out' => 'required|date|after:check_in'
+        ]);
+
+        try {
+            $checkIn = \Carbon\Carbon::parse($request->check_in);
+            $checkOut = \Carbon\Carbon::parse($request->check_out);
+            
+            $nights = $checkIn->diffInDays($checkOut);
+            $basePrice = $property->price;
+            $totalPrice = $nights * $basePrice;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'property_id' => $property->id,
+                    'check_in' => $checkIn->format('Y-m-d'),
+                    'check_out' => $checkOut->format('Y-m-d'),
+                    'nights' => $nights,
+                    'base_price_per_night' => $basePrice,
+                    'total_price' => $totalPrice,
+                    'subtotal' => $totalPrice,
+                    'applied_discounts' => [],
+                    'available_discounts' => []
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al calcular el precio: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

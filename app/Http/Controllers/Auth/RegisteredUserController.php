@@ -46,6 +46,12 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        // Verificar si hay una URL de redirección
+        $redirectTo = $request->get('redirect_to');
+        if ($redirectTo && filter_var($redirectTo, FILTER_VALIDATE_URL)) {
+            return redirect($redirectTo);
+        }
+
         return redirect(RouteServiceProvider::HOME);
     }
 }

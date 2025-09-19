@@ -36,6 +36,19 @@ class LocationController extends Controller
     }
 
     /**
+     * Obtener ciudades por ID de departamento (para AJAX)
+     */
+    public function getCitiesByDepartmentId($departmentId)
+    {
+        $cities = City::active()
+            ->where('department_id', $departmentId)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($cities);
+    }
+
+    /**
      * Obtener todas las ciudades (para búsquedas)
      */
     public function getAllCities()

@@ -28,17 +28,41 @@ class ReservationController extends Controller
         return view('reservations.index', compact('reservations'));
     }
 
-    public function store(Request $request, Property $property)
+    public function create(Request $request)
+    {
+        $properties = Property::where('is_active', true)
+            ->with('primaryImage')
+            ->orderBy('name')
+            ->get();
+
+        // Cargar datos de reserva pendiente desde localStorage si existen
+        $pendingReservation = null;
+        if ($request->has('reservation_data')) {
+            try {
+                $pendingReservation = json_decode($request->reservation_data, true);
+            } catch (\Exception $e) {
+                // Ignorar error de JSON inválido
+            }
+        }
+
+        return view('reservations.create', compact('properties', 'pendingReservation'));
+    }
+
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'property_id' => 'required|exists:properties,id',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'guests' => 'required|integer|min:1|max:20',
             'special_requests' => 'nullable|string|max:500'
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
+
+        $property = Property::findOrFail($request->property_id);
 
         // Verificar disponibilidad
         if (!$property->isAvailableForDates($request->start_date, $request->end_date)) {
@@ -53,6 +77,7 @@ class ReservationController extends Controller
             'property_id' => $property->id,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
+            'guests' => $request->guests,
             'total_price' => $totalPrice,
             'special_requests' => $request->special_requests,
             'status' => 'pending'
@@ -60,6 +85,15 @@ class ReservationController extends Controller
 
         // Notificar al administrador (aquí se implementaría la notificación por WhatsApp)
         $this->notifyAdmin($reservation);
+
+        // Si es una solicitud AJAX, devolver JSON
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Solicitud de reserva enviada exitosamente. Te notificaremos cuando sea aprobada.',
+                'reservation' => $reservation
+            ]);
+        }
 
         return redirect()->route('reservations.index')
             ->with('success', 'Solicitud de reserva enviada exitosamente. Te notificaremos cuando sea aprobada.');

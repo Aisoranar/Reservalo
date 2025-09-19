@@ -15,9 +15,9 @@
                             <i class="fas fa-arrow-left me-1"></i>Propiedades
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ $property->name }}</li>
-                </ol>
-            </nav>
+            <li class="breadcrumb-item active" aria-current="page">{{ $property->name }}</li>
+        </ol>
+    </nav>
         </div>
 
         <!-- Contenido del hero -->
@@ -73,16 +73,16 @@
 
     <!-- Contenido principal -->
     <div class="container py-5">
-        <div class="row">
-            <div class="col-lg-8">
+    <div class="row">
+        <div class="col-lg-8">
                 <!-- Galería de imágenes mejorada -->
-                @if($property->images->count() > 0)
+            @if($property->images->count() > 0)
                     <div class="property-gallery mb-5">
                         <div class="gallery-container position-relative">
-                            <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
                                 <div class="carousel-inner rounded-4 overflow-hidden shadow-lg">
-                                    @foreach($property->images as $index => $image)
-                                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                            @foreach($property->images as $index => $image)
+                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
                                             <div class="image-container position-relative">
                                                 <img src="{{ $image->full_url }}" class="d-block w-100 gallery-image" 
                                                      alt="{{ $image->alt_text }}">
@@ -97,42 +97,42 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endforeach
                                 </div>
+                            @endforeach
+                        </div>
                                 
                                 <!-- Controles personalizados -->
                                 <button class="carousel-control-prev custom-control" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
                                     <i class="fas fa-chevron-left"></i>
-                                </button>
+                        </button>
                                 <button class="carousel-control-next custom-control" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
                                     <i class="fas fa-chevron-right"></i>
-                                </button>
-                                
+                        </button>
+                    
                                 <!-- Indicadores personalizados -->
                                 <div class="carousel-indicators custom-indicators">
-                                    @foreach($property->images as $index => $image)
+                            @foreach($property->images as $index => $image)
                                         <button type="button" data-bs-target="#propertyCarousel" 
                                                 data-bs-slide-to="{{ $index }}" 
                                                 class="{{ $index === 0 ? 'active' : '' }}"
                                                 aria-label="Slide {{ $index + 1 }}">
                                             <img src="{{ $image->full_url }}" alt="Thumbnail {{ $index + 1 }}">
                                         </button>
-                                    @endforeach
-                                </div>
+                            @endforeach
+                        </div>
                             </div>
                         </div>
-                    </div>
-                @else
+                </div>
+            @else
                     <div class="no-image-placeholder mb-5 rounded-4 bg-gradient d-flex align-items-center justify-content-center" 
                          style="height: 500px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                        <div class="text-center text-muted">
+                    <div class="text-center text-muted">
                             <i class="fas fa-image fa-5x mb-4 text-primary opacity-50"></i>
                             <h4 class="mb-2">No hay imágenes disponibles</h4>
                             <p class="mb-0">Próximamente se agregarán fotos de esta propiedad</p>
-                        </div>
                     </div>
-                @endif
+                </div>
+            @endif
 
             <!-- Información principal -->
             <div class="card border-0 shadow-sm mb-4">
@@ -353,14 +353,14 @@
 
 
         <div class="col-lg-4">
-            <!-- Calendario de disponibilidad -->
-            <div class="card border-0 shadow-sm mb-4">
+                    <!-- Calendario de disponibilidad -->
+                    <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-gradient text-white border-0 py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <h6 class="mb-0 text-white text-center">
                         <i class="fas fa-calendar-alt me-2"></i>
                         Disponibilidad
                     </h6>
-                </div>
+                        </div>
                 <div class="card-body p-2">
                     <!-- Calendario Compacto -->
                     <div class="mini-calendar-container">
@@ -372,7 +372,7 @@
                             <button type="button" class="mini-calendar-nav-btn" id="nextMonth">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
-                        </div>
+                            </div>
                         <div class="mini-calendar-weekdays">
                             <div class="mini-weekday">L</div>
                             <div class="mini-weekday">M</div>
@@ -381,17 +381,17 @@
                             <div class="mini-weekday">V</div>
                             <div class="mini-weekday">S</div>
                             <div class="mini-weekday">D</div>
-                        </div>
+                                    </div>
                         <div class="mini-calendar-days" id="calendarDays">
                             <!-- Los días se generarán dinámicamente -->
-                        </div>
+                                    </div>
                         
                         <!-- Indicador de fechas ocupadas -->
                         <div class="mini-occupied-indicator" id="occupiedIndicator" style="display: none;">
                             <i class="fas fa-circle"></i>
                             <span>Cargando...</span>
-                        </div>
-                    </div>
+                                </div>
+                            </div>
                     
                     <!-- Fechas seleccionadas compactas -->
                     <div class="mini-selected-dates mt-3">
@@ -405,7 +405,7 @@
                             <label class="form-label small fw-bold">Salida</label>
                             <input type="text" class="form-control form-control-sm" id="selectedEndDate" 
                                    placeholder="Selecciona fecha" readonly>
-                        </div>
+                    </div>
                         
                         <div class="d-grid gap-1 mb-2">
                             <button type="button" class="btn btn-outline-primary btn-sm" id="clearDates">
@@ -417,10 +417,10 @@
                         <div class="mini-selection-status" id="selectionStatus" style="display: none;">
                             <div class="alert alert-info py-2 text-center">
                                 <small id="statusText">Selecciona fecha de salida</small>
-                            </div>
-                        </div>
-                    </div>
-                    
+                </div>
+            </div>
+        </div>
+
                     <!-- Leyenda compacta -->
                     <div class="mini-legend mt-2">
                         <div class="d-flex justify-content-between small">
@@ -438,15 +438,15 @@
             </div>
 
             <!-- Información importante -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-primary text-white border-0 py-3">
-                    <h5 class="mb-0">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white border-0 py-3">
+                        <h5 class="mb-0">
                         <i class="fas fa-info-circle me-2"></i>
                         Información importante
-                    </h5>
-                </div>
-                <div class="card-body p-3">
-                    <div class="mb-3">
+                        </h5>
+                    </div>
+                    <div class="card-body p-3">
+                            <div class="mb-3">
                         <h6 class="text-primary mb-2">
                             <i class="fas fa-clock me-2"></i>
                             Check-in: 15:00
@@ -455,58 +455,86 @@
                             <i class="fas fa-clock me-2"></i>
                             Check-out: 11:00
                         </h6>
-                    </div>
-                    
-                    <div class="mb-3">
+                            </div>
+ 
+                            <div class="mb-3">
                         <h6 class="text-info mb-2">
                             <i class="fas fa-credit-card me-2"></i>
                             Pago: Al confirmar la reserva
                         </h6>
-                    </div>
-                    
-                    <div class="mb-3">
+                            </div>
+
+                            <div class="mb-3">
                         <h6 class="text-warning mb-2">
                             <i class="fas fa-calendar-times me-2"></i>
                             Cancelación: Cancelación gratuita hasta 7 días antes del check-in.
                         </h6>
-                    </div>
-                    
-                    <div class="mb-3">
+                            </div>
+
+                            <div class="mb-3">
                         <h6 class="text-success mb-2">
                             <i class="fas fa-shield-alt me-2"></i>
                             Seguridad: Reserva segura y confirmada
                         </h6>
-                    </div>
-                </div>
-            </div>
-            
+                                        </div>
+                                </div>
+                            </div>
+
+            <!-- Hidden form inputs for dates - Always available -->
+            <input type="hidden" id="start_date" name="start_date" value="">
+            <input type="hidden" id="end_date" name="end_date" value="">
+
             <!-- Botón de reserva -->
             @auth
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body text-center p-4">
                         <h5 class="text-primary mb-3">
-                            <i class="fas fa-calendar-check me-2"></i>
+                                <i class="fas fa-calendar-check me-2"></i>
                             ¿Listo para reservar?
                         </h5>
                         <p class="text-muted mb-4">Selecciona las fechas en el calendario y completa tu reserva</p>
-                        <button type="button" class="btn btn-primary btn-lg w-100" id="reserveBtn" disabled>
-                            <i class="fas fa-calendar-plus me-2"></i>
-                            Reservar ahora
-                        </button>
-                        <small class="text-muted d-block mt-2">
-                            Las fechas se sincronizarán automáticamente
+                        
+                        <button type="button" class="btn btn-success btn-lg w-100 fw-bold shadow-lg" id="reserveBtn" disabled 
+                                style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+                                       border: none; 
+                                       color: white; 
+                                       text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                                       transition: all 0.3s ease;">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            <span class="fw-bold">Reservar Ahora</span>
+                            </button>
+                        <small class="text-muted d-block mt-2 fw-semibold">
+                            <i class="fas fa-info-circle me-1"></i>Las fechas se sincronizarán automáticamente
                         </small>
                     </div>
                 </div>
             @else
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body text-center p-3">
-                        <i class="fas fa-lock fa-2x text-muted mb-2"></i>
-                        <h6 class="text-dark">Inicia sesión para reservar</h6>
-                        <p class="text-muted small mb-3">Necesitas una cuenta para hacer reservas</p>
-                        <div class="d-grid gap-2">
-                            <a href="{{ route('login') }}" class="btn btn-primary btn-sm">Iniciar Sesión</a>
-                            <a href="{{ route('register') }}" class="btn btn-outline-primary btn-sm">Registrarse</a>
+                <div class="card border-0 shadow-lg mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-lock fa-3x text-white mb-3"></i>
+                        <h5 class="text-white fw-bold mb-2">Inicia sesión para reservar</h5>
+                        <p class="text-white-50 mb-4">Necesitas una cuenta para hacer reservas</p>
+                        <!-- Información de precio seleccionado -->
+                        <div id="selectedPriceInfo" class="alert alert-info mb-3" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong id="selectedNights">0 noches</strong>
+                                    <div class="small text-muted" id="selectedDates">Selecciona fechas</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="h5 mb-0 text-primary" id="selectedTotalPrice">$0</div>
+                                    <div class="small text-muted">Precio total</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-3">
+                            <a href="#" id="loginWithDates" class="btn btn-light btn-lg fw-bold text-dark shadow-sm">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                            </a>
+                            <a href="#" id="registerWithDates" class="btn btn-outline-light btn-lg fw-bold shadow-sm">
+                                <i class="fas fa-user-plus me-2"></i>Registrarse
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -985,7 +1013,7 @@
     justify-content: center;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.75rem;
+     font-size: 0.75rem;
     font-weight: 600;
     transition: all 0.3s ease;
     position: relative;
@@ -1314,6 +1342,36 @@
          font-size: 1rem;
      }
  }
+
+/* Estilos para el botón de reserva */
+#reserveBtn {
+    position: relative;
+    overflow: hidden;
+}
+
+#reserveBtn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4) !important;
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%) !important;
+}
+
+#reserveBtn:not(:disabled):active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3) !important;
+}
+
+#reserveBtn:disabled {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%) !important;
+    color: #adb5bd !important;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+#reserveBtn:disabled:hover {
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
 </style>
 
 <!-- JavaScript -->
@@ -1335,10 +1393,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const reserveBtn = document.getElementById('reserveBtn');
     if (reserveBtn) {
         reserveBtn.addEventListener('click', function() {
+            console.log('=== BOTÓN RESERVA CLICKEADO ===');
+            console.log('selectedStartDate:', selectedStartDate);
+            console.log('selectedEndDate:', selectedEndDate);
+            console.log('selectedStartDate type:', typeof selectedStartDate);
+            console.log('selectedEndDate type:', typeof selectedEndDate);
+            
             if (selectedStartDate && selectedEndDate) {
-                // Mostrar modal de confirmación o mensaje
-                alert('Funcionalidad de reserva en desarrollo. Las fechas seleccionadas son: ' + 
-                      selectedStartDate.toLocaleDateString() + ' - ' + selectedEndDate.toLocaleDateString());
+                // Crear reserva directamente
+                createReservation();
+            } else {
+                showAvailabilityMessage('Por favor selecciona las fechas de tu reserva', 'warning');
             }
         });
     }
@@ -1346,11 +1411,468 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cargar precios nocturnos
     loadNightlyPrices();
     
-    // Configurar event listeners
-    setupEventListeners();
-    
     // Configurar botón de volver arriba
     setupBackToTop();
+    
+    // Configurar botones de acción del calendario
+    setupCalendarActions();
+    
+    // Configurar navegación del calendario
+    function setupCalendarNavigation() {
+        const prevBtn = document.getElementById('prevMonth');
+        const nextBtn = document.getElementById('nextMonth');
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            });
+        }
+    }
+    
+    // Llamar a la configuración de navegación
+    setupCalendarNavigation();
+    
+    // Actualizar selección visual del calendario
+    function updateCalendarSelection() {
+        // Limpiar selecciones anteriores
+        document.querySelectorAll('.calendar-day.selected').forEach(day => {
+            day.classList.remove('selected');
+        });
+        
+        // Marcar fechas seleccionadas
+        document.querySelectorAll('.calendar-day').forEach(day => {
+            const dayDate = new Date(day.textContent);
+            dayDate.setMonth(currentDate.getMonth());
+            dayDate.setFullYear(currentDate.getFullYear());
+            
+            if (selectedStartDate && dayDate.getTime() === selectedStartDate.getTime()) {
+                day.classList.add('selected');
+            }
+            if (selectedEndDate && dayDate.getTime() === selectedEndDate.getTime()) {
+                day.classList.add('selected');
+            }
+        });
+    }
+    
+    // Actualizar inputs de fecha
+    function updateDateInputs() {
+        const startInput = document.getElementById('selectedStartDate');
+        const endInput = document.getElementById('selectedEndDate');
+        
+        console.log('=== UPDATE DATE INPUTS ===');
+        console.log('selectedStartDate:', selectedStartDate);
+        console.log('selectedEndDate:', selectedEndDate);
+        console.log('startInput found:', !!startInput);
+        console.log('endInput found:', !!endInput);
+        
+        if (startInput) {
+            const startValue = selectedStartDate ? selectedStartDate.toLocaleDateString() : '';
+            startInput.value = startValue;
+            console.log('Start input updated to:', startValue);
+        }
+        
+        if (endInput) {
+            const endValue = selectedEndDate ? selectedEndDate.toLocaleDateString() : '';
+            endInput.value = endValue;
+            console.log('End input updated to:', endValue);
+        }
+    }
+    
+    // Actualizar formulario de reserva
+    function updateReservationForm() {
+        if (selectedStartDate && selectedEndDate) {
+            // Actualizar inputs ocultos del formulario
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            
+            if (startDateInput && endDateInput) {
+                startDateInput.value = formatDateToLocalString(selectedStartDate);
+                endDateInput.value = formatDateToLocalString(selectedEndDate);
+            }
+            
+            // Habilitar botón de reserva
+            const reserveBtn = document.getElementById('reserveBtn');
+            if (reserveBtn) {
+                reserveBtn.disabled = false;
+                reserveBtn.classList.remove('btn-secondary');
+                reserveBtn.classList.add('btn-primary');
+            }
+            
+            // Calcular total si existe la función
+            if (typeof calculateTotal === 'function') {
+                calculateTotal();
+            }
+        } else {
+            // Deshabilitar botón de reserva
+            const reserveBtn = document.getElementById('reserveBtn');
+            if (reserveBtn) {
+                reserveBtn.disabled = true;
+                reserveBtn.classList.remove('btn-primary');
+                reserveBtn.classList.add('btn-secondary');
+            }
+        }
+    }
+    
+    // Manejar clic en día
+    function handleDayClick(dayDate, dayElement) {
+        // No permitir selección de días ocupados o deshabilitados
+        if (dayElement.classList.contains('occupied')) {
+            showOccupiedDateWarning(dayDate);
+            return;
+        }
+        
+        if (dayElement.classList.contains('disabled') || 
+            dayElement.classList.contains('other-month')) {
+            return;
+        }
+        
+        // Lógica de selección
+        if (!selectedStartDate) {
+            // Primera selección: fecha de inicio
+            selectedStartDate = dayDate;
+            dayElement.classList.add('selected');
+            isSelectingEndDate = true;
+            
+            // Actualizar inputs
+            updateDateInputs();
+            showSelectionStatus('Selecciona la fecha de salida');
+            
+            console.log('Fecha de inicio seleccionada:', selectedStartDate.toLocaleDateString());
+        } else if (!selectedEndDate && isSelectingEndDate) {
+            // Segunda selección: fecha de fin - VALIDAR RANGO COMPLETO
+            const startDate = selectedStartDate;
+            const endDate = dayDate;
+            
+            // Determinar el rango correcto (inicio y fin)
+            let actualStartDate, actualEndDate;
+            if (dayDate.getTime() === startDate.getTime()) {
+                // Misma fecha: reserva de un día
+                actualStartDate = startDate;
+                actualEndDate = dayDate;
+            } else if (dayDate < startDate) {
+                // Fecha anterior: intercambiar
+                actualStartDate = dayDate;
+                actualEndDate = startDate;
+            } else {
+                // Fecha posterior: rango normal
+                actualStartDate = startDate;
+                actualEndDate = dayDate;
+            }
+            
+            // VALIDAR QUE NO HAYA FECHAS OCUPADAS EN EL RANGO
+            if (validateDateRange(actualStartDate, actualEndDate)) {
+                selectedStartDate = actualStartDate;
+                selectedEndDate = actualEndDate;
+                isSelectingEndDate = false;
+                
+                // Actualizar visualización
+                updateCalendarSelection();
+                updateDateInputs();
+                hideSelectionStatus();
+                
+                // Actualizar formulario de reserva
+                updateReservationForm();
+                
+                console.log('Rango válido seleccionado - Inicio:', selectedStartDate.toLocaleDateString(), 'Fin:', selectedEndDate.toLocaleDateString());
+            } else {
+                // Mostrar error y sugerir fechas alternativas
+                suggestAlternativeDates(actualStartDate, actualEndDate);
+                return;
+            }
+        } else {
+            // Nueva selección: reiniciar
+            clearSelection();
+            selectedStartDate = dayDate;
+            dayElement.classList.add('selected');
+            isSelectingEndDate = true;
+            
+            updateDateInputs();
+            showSelectionStatus('Selecciona la fecha de salida');
+            
+            console.log('Nueva selección iniciada:', dayDate.toLocaleDateString());
+        }
+    }
+    
+    // Validar rango de fechas
+    function validateDateRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        // Verificar que no haya fechas ocupadas en el rango
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const dateString = d.toISOString().split('T')[0];
+            if (occupiedDates.includes(dateString)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    // Mostrar advertencia de fecha ocupada
+    function showOccupiedDateWarning(date) {
+        showAvailabilityMessage(`La fecha ${date.toLocaleDateString()} está ocupada`, 'warning');
+    }
+    
+    // Crear elemento de día
+    function createDayElement(dayDate) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = dayDate.getDate();
+        
+        const today = new Date();
+        const isCurrentMonth = dayDate.getMonth() === currentDate.getMonth();
+        const isToday = dayDate.toDateString() === today.toDateString();
+        
+        // Permitir seleccionar el día de hoy, solo bloquear fechas pasadas
+        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+        const isPast = dayDateOnly < todayOnly;
+        const dateString = dayDate.toISOString().split('T')[0];
+        const isOccupied = isDateOccupied(dateString);
+        
+        // Aplicar clases según el estado
+        if (!isCurrentMonth) {
+            dayElement.classList.add('other-month');
+        }
+        
+        if (isPast) {
+            dayElement.classList.add('disabled');
+        }
+        
+        if (isOccupied) {
+            dayElement.classList.add('occupied');
+            dayElement.title = 'Fecha ocupada - No disponible';
+        } else if (!isPast && isCurrentMonth) {
+            // Solo las fechas disponibles y del mes actual tienen animación
+            dayElement.classList.add('selectable');
+        }
+        
+        if (isToday) {
+            dayElement.classList.add('today');
+        }
+        
+        // Verificar si está seleccionado
+        if (selectedStartDate && dayDate.getTime() === selectedStartDate.getTime()) {
+            dayElement.classList.add('selected-start');
+        }
+        if (selectedEndDate && dayDate.getTime() === selectedEndDate.getTime()) {
+            dayElement.classList.add('selected-end');
+        }
+        
+        // Verificar si está en el rango seleccionado
+        if (selectedStartDate && selectedEndDate) {
+            const start = selectedStartDate.getTime();
+            const end = selectedEndDate.getTime();
+            const dayTime = dayDate.getTime();
+            
+            if (dayTime > start && dayTime < end) {
+                dayElement.classList.add('in-range');
+            }
+        }
+        
+        // Verificar si debe estar bloqueado para rango
+        if (selectedStartDate && !selectedEndDate) {
+            const startDateOnly = new Date(selectedStartDate.getFullYear(), selectedStartDate.getMonth(), selectedStartDate.getDate());
+            const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+            
+            if (dayDateOnly > startDateOnly) {
+                // Buscar si hay fechas ocupadas entre la fecha de inicio y la fecha actual
+                let currentDate = new Date(startDateOnly);
+                currentDate.setDate(currentDate.getDate() + 1); // Empezar desde el día siguiente
+                
+                let hasOccupiedInRange = false;
+                let lastOccupiedDate = null;
+                
+                while (currentDate <= dayDateOnly) {
+                    const currentDateString = currentDate.toISOString().split('T')[0];
+                    if (isDateOccupied(currentDateString)) {
+                        hasOccupiedInRange = true;
+                        lastOccupiedDate = new Date(currentDate);
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                // Si hay fechas ocupadas en el rango, bloquear todas las fechas posteriores
+                if (hasOccupiedInRange) {
+                    // Bloquear todas las fechas posteriores a la última fecha ocupada
+                    if (lastOccupiedDate && dayDateOnly > lastOccupiedDate) {
+                        dayElement.classList.add('blocked-range');
+                        dayElement.title = 'Rango bloqueado - Hay fechas ocupadas en el rango';
+                    }
+                }
+            }
+        }
+        
+        // Agregar evento de clic
+        dayElement.addEventListener('click', () => handleDayClick(dayDate, dayElement));
+        
+        return dayElement;
+    }
+    
+    // Configurar botones de acción
+    function setupCalendarActions() {
+        const clearBtn = document.getElementById('clearDates');
+        const todayBtn = document.getElementById('selectToday');
+        const weekendBtn = document.getElementById('selectWeekend');
+        
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearSelection);
+        }
+        
+        if (todayBtn) {
+            todayBtn.addEventListener('click', () => {
+                const today = new Date();
+                const dayElement = document.querySelector(`.calendar-day:not(.disabled):not(.occupied)`);
+                if (dayElement) {
+                    handleDayClick(today, dayElement);
+                }
+            });
+        }
+        
+        if (weekendBtn) {
+            weekendBtn.addEventListener('click', () => {
+                const today = new Date();
+                const nextSaturday = new Date(today);
+                nextSaturday.setDate(today.getDate() + (6 - today.getDay()));
+                const nextSunday = new Date(nextSaturday);
+                nextSunday.setDate(nextSaturday.getDate() + 1);
+                
+                // Seleccionar fin de semana
+                clearSelection();
+                selectedStartDate = nextSaturday;
+                selectedEndDate = nextSunday;
+                isSelectingEndDate = false;
+                
+                updateCalendarSelection();
+                updateDateInputs();
+                updateReservationForm();
+            });
+        }
+    }
+    
+    // Función para verificar si una fecha está ocupada
+    function isDateOccupied(dateString) {
+        return occupiedDates.includes(dateString);
+    }
+    
+    // Actualizar el mes y año en el header
+    function updateMonthYear() {
+        const monthYearElement = document.getElementById('currentMonthYear');
+        if (monthYearElement) {
+            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                               'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            const month = monthNames[currentDate.getMonth()];
+            const year = currentDate.getFullYear();
+            monthYearElement.textContent = `${month} ${year}`;
+        }
+    }
+    
+    // Renderizar calendario
+    function renderCalendar() {
+        const calendarDays = document.getElementById('calendarDays');
+        const monthYear = document.getElementById('currentMonthYear');
+        
+        if (!calendarDays || !monthYear) return;
+        
+        // Actualizar título del mes
+        updateMonthYear();
+        
+        // Limpiar días existentes
+        calendarDays.innerHTML = '';
+        
+        // Obtener primer día del mes y número de días
+        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+        
+        // Generar días del calendario
+        for (let i = 0; i < 42; i++) {
+            const dayDate = new Date(startDate);
+            dayDate.setDate(startDate.getDate() + i);
+            
+            const dayElement = createDayElement(dayDate);
+            calendarDays.appendChild(dayElement);
+        }
+    }
+    
+    // Inicializar calendario dinámico
+    function initializeDynamicCalendar() {
+        console.log('Inicializando calendario dinámico');
+        
+        // Cargar fechas ocupadas
+        fetchOccupiedDates();
+        
+        // Renderizar calendario
+        renderCalendar();
+        
+        // Configurar navegación
+        setupCalendarNavigation();
+        
+        // Configurar botones de acción
+        setupCalendarActions();
+    }
+    
+    // Cargar fechas ocupadas
+    async function fetchOccupiedDates() {
+        const propertyId = {{ $property->id }};
+        
+        try {
+            // Mostrar indicador de carga
+            showLoadingIndicator();
+            
+            const response = await fetch(`/api/properties/${propertyId}/occupied-dates`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            occupiedDates = data.occupied_dates || [];
+            console.log('Fechas ocupadas cargadas:', occupiedDates);
+            
+            // Mostrar información de fechas ocupadas
+            showOccupiedDatesInfo(occupiedDates.length);
+            
+            // Re-renderizar calendario con fechas ocupadas
+            renderCalendar();
+        } catch (error) {
+            console.error('Error al cargar fechas ocupadas:', error);
+            occupiedDates = [];
+            showErrorIndicator('Error cargando fechas ocupadas');
+        }
+    }
+    
+    // Función para mostrar indicador de carga
+    function showLoadingIndicator() {
+        const indicator = document.getElementById('occupiedIndicator');
+        if (indicator) {
+            indicator.style.display = 'flex';
+            indicator.innerHTML = '<i class="fas fa-circle"></i><span>Cargando fechas ocupadas...</span>';
+        }
+    }
+    
+    // Función para mostrar información de fechas ocupadas
+    function showOccupiedDatesInfo(count) {
+        const indicator = document.getElementById('occupiedIndicator');
+        if (indicator) {
+            if (count > 0) {
+                indicator.innerHTML = `<i class="fas fa-circle"></i><span>${count} fecha(s) ocupada(s) encontrada(s)</span>`;
+            } else {
+                indicator.innerHTML = '<i class="fas fa-circle"></i><span>No hay fechas ocupadas</span>';
+            }
+            indicator.style.display = 'flex';
+        }
+    }
 });
 
 // Funcionalidades dinámicas mejoradas
@@ -1489,83 +2011,175 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar animaciones
     animateOnScroll();
+    
+    // Configurar event listeners después de que todo el DOM esté cargado
+    setupEventListeners();
+    
+    // Configurar botones de login/registro con fechas
+    setupGuestButtons();
+    
+    // Cargar datos de reserva si existen (después del login)
+    loadReservationDataFromStorage();
 });
 
-// Variables globales para el calendario dinámico
-let currentDate = new Date();
-let selectedStartDate = null;
-let selectedEndDate = null;
-let isSelectingEndDate = false;
-let occupiedDates = [];
+// Variables globales para el calendario dinámico (declaradas dentro de DOMContentLoaded)
 
-// Inicializar calendario dinámico
-function initializeDynamicCalendar() {
-    console.log('Inicializando calendario dinámico');
-    
-    // Cargar fechas ocupadas
-    fetchOccupiedDates();
-    
-    // Renderizar calendario
-    renderCalendar();
-    
-    // Configurar navegación
-    setupCalendarNavigation();
-    
-    // Configurar botones de acción
-    setupCalendarActions();
+// Función auxiliar para crear fechas en zona horaria local
+function createLocalDate(dateString) {
+    if (!dateString) return null;
+    // Si ya tiene formato completo, usarlo directamente
+    if (dateString.includes('T')) {
+        return new Date(dateString);
+    }
+    // Si es solo fecha (YYYY-MM-DD), agregar hora local
+    return new Date(dateString + 'T00:00:00');
 }
 
-// Cargar fechas ocupadas
-async function fetchOccupiedDates() {
-    const propertyId = {{ $property->id }};
+// Función auxiliar para formatear fecha a string local
+function formatDateToLocalString(date) {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Función para actualizar información de precio para usuarios no autenticados
+function updatePriceInfoForGuests(nights, totalPrice, startDate, endDate) {
+    const priceInfo = document.getElementById('selectedPriceInfo');
+    const selectedNights = document.getElementById('selectedNights');
+    const selectedDates = document.getElementById('selectedDates');
+    const selectedTotalPrice = document.getElementById('selectedTotalPrice');
     
-    try {
-        // Mostrar indicador de carga
-        showLoadingIndicator();
+    if (priceInfo && selectedNights && selectedDates && selectedTotalPrice) {
+        selectedNights.textContent = `${nights} noche${nights !== 1 ? 's' : ''}`;
+        selectedDates.textContent = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+        selectedTotalPrice.textContent = `$${totalPrice.toLocaleString()}`;
+        priceInfo.style.display = 'block';
         
-        const response = await fetch(`/api/properties/${propertyId}/occupied-dates`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Guardar datos en localStorage para después del login
+        localStorage.setItem('reservationData', JSON.stringify({
+            property_id: {{ $property->id }},
+            start_date: formatDateToLocalString(startDate),
+            end_date: formatDateToLocalString(endDate),
+            nights: nights,
+            total_price: totalPrice,
+            property_name: '{{ $property->name }}'
+        }));
+    }
+}
+
+// Función para limpiar información de precio
+function clearPriceInfoForGuests() {
+    const priceInfo = document.getElementById('selectedPriceInfo');
+    if (priceInfo) {
+        priceInfo.style.display = 'none';
+    }
+    localStorage.removeItem('reservationData');
+}
+
+// Configurar botones de login/registro para usuarios no autenticados
+function setupGuestButtons() {
+    const loginBtn = document.getElementById('loginWithDates');
+    const registerBtn = document.getElementById('registerWithDates');
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const reservationData = localStorage.getItem('reservationData');
+            if (reservationData) {
+                // Crear formulario temporal para enviar datos
+                const form = document.createElement('form');
+                form.method = 'GET';
+                form.action = '{{ route("login") }}';
+                
+                const redirectInput = document.createElement('input');
+                redirectInput.type = 'hidden';
+                redirectInput.name = 'redirect_to';
+                redirectInput.value = window.location.href;
+                
+                const dataInput = document.createElement('input');
+                dataInput.type = 'hidden';
+                dataInput.name = 'reservation_data';
+                dataInput.value = reservationData;
+                
+                form.appendChild(redirectInput);
+                form.appendChild(dataInput);
+                document.body.appendChild(form);
+                form.submit();
+            } else {
+                window.location.href = '{{ route("login") }}?redirect_to=' + encodeURIComponent(window.location.href);
+            }
+        });
+    }
+    
+    if (registerBtn) {
+        registerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const reservationData = localStorage.getItem('reservationData');
+            if (reservationData) {
+                // Crear formulario temporal para enviar datos
+                const form = document.createElement('form');
+                form.method = 'GET';
+                form.action = '{{ route("register") }}';
+                
+                const redirectInput = document.createElement('input');
+                redirectInput.type = 'hidden';
+                redirectInput.name = 'redirect_to';
+                redirectInput.value = window.location.href;
+                
+                const dataInput = document.createElement('input');
+                dataInput.type = 'hidden';
+                dataInput.name = 'reservation_data';
+                dataInput.value = reservationData;
+                
+                form.appendChild(redirectInput);
+                form.appendChild(dataInput);
+                document.body.appendChild(form);
+                form.submit();
+            } else {
+                window.location.href = '{{ route("register") }}?redirect_to=' + encodeURIComponent(window.location.href);
+            }
+        });
+    }
+}
+
+// Cargar datos de reserva desde localStorage (después del login)
+function loadReservationDataFromStorage() {
+    const reservationData = localStorage.getItem('reservationData');
+    if (reservationData) {
+        try {
+            const data = JSON.parse(reservationData);
+            console.log('Datos de reserva encontrados:', data);
+            
+            // Verificar que los datos sean para esta propiedad
+            if (data.property_id == {{ $property->id }}) {
+                // Cargar las fechas seleccionadas
+                selectedStartDate = createLocalDate(data.start_date);
+                selectedEndDate = createLocalDate(data.end_date);
+                
+                if (selectedStartDate && selectedEndDate) {
+                    // Actualizar la visualización del calendario
+                    updateCalendarSelection();
+                    updateDateInputs();
+                    updateReservationForm();
+                    
+                    // Mostrar mensaje de bienvenida
+                    showAvailabilityMessage(`¡Bienvenido! Tus fechas seleccionadas han sido cargadas: ${data.nights} noche${data.nights !== 1 ? 's' : ''} por $${data.total_price.toLocaleString()}`, 'success');
+                    
+                    // Limpiar los datos del localStorage ya que se han cargado
+                    localStorage.removeItem('reservationData');
+                }
+            }
+        } catch (error) {
+            console.error('Error al cargar datos de reserva:', error);
+            localStorage.removeItem('reservationData');
         }
-        
-        const data = await response.json();
-        occupiedDates = data.occupied_dates || [];
-        console.log('Fechas ocupadas cargadas:', occupiedDates);
-        
-        // Mostrar información de fechas ocupadas
-        showOccupiedDatesInfo(occupiedDates.length);
-        
-        // Re-renderizar calendario con fechas ocupadas
-        renderCalendar();
-    } catch (error) {
-        console.error('Error al cargar fechas ocupadas:', error);
-        occupiedDates = [];
-        showErrorIndicator('Error cargando fechas ocupadas');
     }
 }
 
-// Función para mostrar indicador de carga
-function showLoadingIndicator() {
-    const indicator = document.getElementById('occupiedIndicator');
-    if (indicator) {
-        indicator.style.display = 'flex';
-        indicator.innerHTML = '<i class="fas fa-circle"></i><span>Cargando fechas ocupadas...</span>';
-    }
-}
 
-// Función para mostrar información de fechas ocupadas
-function showOccupiedDatesInfo(count) {
-    const indicator = document.getElementById('occupiedIndicator');
-    if (indicator) {
-        if (count > 0) {
-            indicator.innerHTML = `<i class="fas fa-circle"></i><span>${count} fecha(s) ocupada(s) encontrada(s)</span>`;
-        } else {
-            indicator.innerHTML = '<i class="fas fa-circle"></i><span>No hay fechas ocupadas</span>';
-        }
-        indicator.style.display = 'flex';
-    }
-}
+
 
 // Función para mostrar error
 function showErrorIndicator(message) {
@@ -1576,10 +2190,6 @@ function showErrorIndicator(message) {
     }
 }
 
-// Función para verificar si una fecha está ocupada
-function isDateOccupied(dateString) {
-    return occupiedDates.includes(dateString);
-}
 
 // Función para validar que no haya fechas ocupadas en un rango
 function validateDateRange(startDate, endDate) {
@@ -1783,231 +2393,9 @@ function hasOccupiedDatesInRange(startDate, endDate) {
     return false; // El rango está completamente libre
 }
 
-// Renderizar calendario
-function renderCalendar() {
-    const calendarDays = document.getElementById('calendarDays');
-    const monthYear = document.getElementById('currentMonthYear');
-    
-    if (!calendarDays || !monthYear) return;
-    
-    // Actualizar título del mes
-    updateMonthYear();
-    
-    // Limpiar días existentes
-    calendarDays.innerHTML = '';
-    
-    // Obtener primer día del mes y número de días
-    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
-    // Generar días del calendario
-    for (let i = 0; i < 42; i++) {
-        const dayDate = new Date(startDate);
-        dayDate.setDate(startDate.getDate() + i);
-        
-        const dayElement = createDayElement(dayDate);
-        calendarDays.appendChild(dayElement);
-    }
-}
 
-// Crear elemento de día
-function createDayElement(dayDate) {
-    const dayElement = document.createElement('div');
-    dayElement.className = 'calendar-day';
-    dayElement.textContent = dayDate.getDate();
-    
-    const today = new Date();
-    const isCurrentMonth = dayDate.getMonth() === currentDate.getMonth();
-    const isToday = dayDate.toDateString() === today.toDateString();
-    
-    // Permitir seleccionar el día de hoy, solo bloquear fechas pasadas
-    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
-    const isPast = dayDateOnly < todayOnly;
-    const dateString = dayDate.toISOString().split('T')[0];
-    const isOccupied = isDateOccupied(dateString);
-    
-    // Aplicar clases según el estado
-    if (!isCurrentMonth) {
-        dayElement.classList.add('other-month');
-    }
-    
-    if (isPast) {
-        dayElement.classList.add('disabled');
-    }
-    
-    if (isOccupied) {
-        dayElement.classList.add('occupied');
-        dayElement.title = 'Fecha ocupada - No disponible';
-    } else if (!isPast && isCurrentMonth) {
-        // Solo las fechas disponibles y del mes actual tienen animación
-        dayElement.classList.add('selectable');
-    }
-    
-    if (isToday) {
-        dayElement.classList.add('today');
-    }
-    
-    // Verificar si está seleccionado
-    if (selectedStartDate && dayDate.getTime() === selectedStartDate.getTime()) {
-        dayElement.classList.add('selected-start');
-    }
-    if (selectedEndDate && dayDate.getTime() === selectedEndDate.getTime()) {
-        dayElement.classList.add('selected-end');
-    }
-    
-    // Verificar si está en el rango seleccionado
-    if (selectedStartDate && selectedEndDate) {
-        const start = selectedStartDate.getTime();
-        const end = selectedEndDate.getTime();
-        const dayTime = dayDate.getTime();
-        
-        if (dayTime > start && dayTime < end) {
-            dayElement.classList.add('in-range');
-        }
-    }
-    
-    // Verificar si debe estar bloqueado para rango
-    if (selectedStartDate && !selectedEndDate) {
-        const startDateOnly = new Date(selectedStartDate.getFullYear(), selectedStartDate.getMonth(), selectedStartDate.getDate());
-        const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
-        
-        if (dayDateOnly > startDateOnly) {
-            // Buscar si hay fechas ocupadas entre la fecha de inicio y la fecha actual
-            let currentDate = new Date(startDateOnly);
-            currentDate.setDate(currentDate.getDate() + 1); // Empezar desde el día siguiente
-            
-            let hasOccupiedInRange = false;
-            let lastOccupiedDate = null;
-            
-            while (currentDate <= dayDateOnly) {
-                const currentDateString = currentDate.toISOString().split('T')[0];
-                if (isDateOccupied(currentDateString)) {
-                    hasOccupiedInRange = true;
-                    lastOccupiedDate = new Date(currentDate);
-                }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-            
-            // Si hay fechas ocupadas en el rango, bloquear todas las fechas posteriores
-            if (hasOccupiedInRange) {
-                // Bloquear todas las fechas posteriores a la última fecha ocupada
-                if (lastOccupiedDate && dayDateOnly > lastOccupiedDate) {
-                    dayElement.classList.add('blocked-range');
-                    dayElement.title = 'Rango bloqueado - Hay fechas ocupadas en el rango';
-                }
-            }
-        }
-    }
-    
-    // Agregar evento de clic
-    dayElement.addEventListener('click', () => handleDayClick(dayDate, dayElement));
-    
-    return dayElement;
-}
 
-// Manejar clic en día
-function handleDayClick(dayDate, dayElement) {
-    // No permitir selección de días ocupados o deshabilitados
-    if (dayElement.classList.contains('occupied')) {
-        showOccupiedDateWarning(dayDate);
-                return;
-            }
-            
-    if (dayElement.classList.contains('disabled') || 
-        dayElement.classList.contains('other-month')) {
-                return;
-            }
-    
-    // Lógica de selección
-    if (!selectedStartDate) {
-        // Primera selección: fecha de inicio
-        selectedStartDate = dayDate;
-        dayElement.classList.add('selected');
-        isSelectingEndDate = true;
-        
-        // Actualizar inputs
-        updateDateInputs();
-        showSelectionStatus('Selecciona la fecha de salida');
-        
-        console.log('Fecha de inicio seleccionada:', selectedStartDate.toLocaleDateString());
-    } else if (!selectedEndDate && isSelectingEndDate) {
-        // Segunda selección: fecha de fin - VALIDAR RANGO COMPLETO
-        const startDate = selectedStartDate;
-        const endDate = dayDate;
-        
-        // Determinar el rango correcto (inicio y fin)
-        let actualStartDate, actualEndDate;
-        if (dayDate.getTime() === startDate.getTime()) {
-            // Misma fecha: reserva de un día
-            actualStartDate = startDate;
-            actualEndDate = dayDate;
-        } else if (dayDate < startDate) {
-            // Fecha anterior: intercambiar
-            actualStartDate = dayDate;
-            actualEndDate = startDate;
-        } else {
-            // Fecha posterior: rango normal
-            actualStartDate = startDate;
-            actualEndDate = dayDate;
-        }
-        
-        // VALIDAR QUE NO HAYA FECHAS OCUPADAS EN EL RANGO
-        if (validateDateRange(actualStartDate, actualEndDate)) {
-            selectedStartDate = actualStartDate;
-            selectedEndDate = actualEndDate;
-            isSelectingEndDate = false;
-            
-            // Actualizar visualización
-            updateCalendarSelection();
-            updateDateInputs();
-            hideSelectionStatus();
-            
-            // Actualizar formulario de reserva
-            updateReservationForm();
-            
-            console.log('Rango válido seleccionado - Inicio:', selectedStartDate.toLocaleDateString(), 'Fin:', selectedEndDate.toLocaleDateString());
-        } else {
-            // Mostrar error y sugerir fechas alternativas
-            suggestAlternativeDates(actualStartDate, actualEndDate);
-            return;
-        }
-    } else {
-        // Nueva selección: reiniciar
-        clearSelection();
-        selectedStartDate = dayDate;
-        dayElement.classList.add('selected');
-        isSelectingEndDate = true;
-        
-        updateDateInputs();
-        showSelectionStatus('Selecciona la fecha de salida');
-        
-        console.log('Nueva selección iniciada:', dayDate.toLocaleDateString());
-    }
-}
 
-// Validar rango de fechas
-function validateDateRange(startDate, endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Verificar que no haya fechas ocupadas en el rango
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dateString = d.toISOString().split('T')[0];
-        if (occupiedDates.includes(dateString)) {
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-// Mostrar advertencia de fecha ocupada
-function showOccupiedDateWarning(date) {
-    showAvailabilityMessage(`La fecha ${date.toLocaleDateString()} está ocupada`, 'warning');
-}
 
 // Mostrar advertencia de rango ocupado
 function showRangeOccupiedWarning(startDate, endDate) {
@@ -2068,41 +2456,7 @@ function findAlternativeRanges(startDate, endDate) {
     return alternatives;
 }
 
-// Actualizar selección visual del calendario
-function updateCalendarSelection() {
-    // Limpiar selecciones anteriores
-    document.querySelectorAll('.calendar-day.selected').forEach(day => {
-        day.classList.remove('selected');
-    });
-    
-    // Marcar fechas seleccionadas
-    document.querySelectorAll('.calendar-day').forEach(day => {
-        const dayDate = new Date(day.textContent);
-        dayDate.setMonth(currentDate.getMonth());
-        dayDate.setFullYear(currentDate.getFullYear());
-        
-        if (selectedStartDate && dayDate.getTime() === selectedStartDate.getTime()) {
-            day.classList.add('selected');
-        }
-        if (selectedEndDate && dayDate.getTime() === selectedEndDate.getTime()) {
-            day.classList.add('selected');
-        }
-    });
-}
 
-// Actualizar inputs de fecha
-function updateDateInputs() {
-    const startInput = document.getElementById('selectedStartDate');
-    const endInput = document.getElementById('selectedEndDate');
-    
-    if (startInput) {
-        startInput.value = selectedStartDate ? selectedStartDate.toLocaleDateString() : '';
-    }
-    
-    if (endInput) {
-        endInput.value = selectedEndDate ? selectedEndDate.toLocaleDateString() : '';
-    }
-}
 
 // Mostrar estado de selección
 function showSelectionStatus(message) {
@@ -2145,108 +2499,24 @@ function clearSelection() {
     if (startDateInput) startDateInput.value = '';
     if (endDateInput) endDateInput.value = '';
     
-    // Resetear campos de precio
-    resetPriceFields();
-}
-
-// Actualizar formulario de reserva
-function updateReservationForm() {
-    if (selectedStartDate && selectedEndDate) {
-        // Habilitar botón de reserva
-        const reserveBtn = document.getElementById('reserveBtn');
-        if (reserveBtn) {
-            reserveBtn.disabled = false;
-            reserveBtn.classList.remove('btn-secondary');
-            reserveBtn.classList.add('btn-primary');
-        }
-        
-        // Calcular total si existe la función
-        if (typeof calculateTotal === 'function') {
-            calculateTotal();
-        }
-    } else {
         // Deshabilitar botón de reserva
         const reserveBtn = document.getElementById('reserveBtn');
         if (reserveBtn) {
             reserveBtn.disabled = true;
             reserveBtn.classList.remove('btn-primary');
             reserveBtn.classList.add('btn-secondary');
-        }
     }
+    
+    // Resetear campos de precio
+    resetPriceFields();
+    
+    // Limpiar información de precio para usuarios no autenticados
+    clearPriceInfoForGuests();
 }
 
-        // Configurar navegación del calendario
-        function setupCalendarNavigation() {
-            const prevBtn = document.getElementById('prevMonth');
-            const nextBtn = document.getElementById('nextMonth');
-            
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    currentDate.setMonth(currentDate.getMonth() - 1);
-                    renderCalendar();
-                });
-            }
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    currentDate.setMonth(currentDate.getMonth() + 1);
-                    renderCalendar();
-                });
-            }
-        }
+
         
-        // Actualizar el mes y año en el header
-        function updateMonthYear() {
-            const monthYearElement = document.getElementById('currentMonthYear');
-            if (monthYearElement) {
-                const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
-                                   'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                const month = monthNames[currentDate.getMonth()];
-                const year = currentDate.getFullYear();
-                monthYearElement.textContent = `${month} ${year}`;
-            }
-        }
 
-// Configurar botones de acción
-function setupCalendarActions() {
-    const clearBtn = document.getElementById('clearDates');
-    const todayBtn = document.getElementById('selectToday');
-    const weekendBtn = document.getElementById('selectWeekend');
-    
-    if (clearBtn) {
-        clearBtn.addEventListener('click', clearSelection);
-    }
-    
-    if (todayBtn) {
-        todayBtn.addEventListener('click', () => {
-            const today = new Date();
-            const dayElement = document.querySelector(`.calendar-day:not(.disabled):not(.occupied)`);
-            if (dayElement) {
-                handleDayClick(today, dayElement);
-            }
-        });
-    }
-    
-    if (weekendBtn) {
-        weekendBtn.addEventListener('click', () => {
-            const today = new Date();
-            const nextSaturday = new Date(today);
-            nextSaturday.setDate(today.getDate() + (6 - today.getDay()));
-            const nextSunday = new Date(nextSaturday);
-            nextSunday.setDate(nextSaturday.getDate() + 1);
-            
-            // Seleccionar fin de semana
-            clearSelection();
-            selectedStartDate = nextSaturday;
-            selectedEndDate = nextSunday;
-            isSelectingEndDate = false;
-            
-            updateCalendarSelection();
-            updateDateInputs();
-            updateReservationForm();
-        });
-    }
-}
 
 // Cargar eventos de disponibilidad (simplificada)
 function loadAvailabilityEvents(start, end, successCallback, failureCallback) {
@@ -2309,9 +2579,6 @@ function setupEventListeners() {
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
     
-    console.log('Start date input:', startDateInput);
-    console.log('End date input:', endDateInput);
-    
     if (startDateInput && endDateInput) {
         // Actualizar atributos min basado en la hora actual
         updateDateInputsMin();
@@ -2346,17 +2613,17 @@ function updateDateInputsMin() {
         const now = new Date();
         const currentHour = now.getHours();
         
-        // Si es después de las 18:00, no permitir reservas para hoy
-        if (currentHour >= 18) {
+        // Si es después de las 22:00, no permitir reservas para hoy
+        if (currentHour >= 22) {
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            const tomorrowStr = formatDateToLocalString(tomorrow);
             
             startDateInput.min = tomorrowStr;
             endDateInput.min = tomorrowStr;
         } else {
-            // Si es antes de las 18:00, permitir reservas para hoy
-            const todayStr = now.toISOString().split('T')[0];
+            // Si es antes de las 22:00, permitir reservas para hoy
+            const todayStr = formatDateToLocalString(now);
             startDateInput.min = todayStr;
             endDateInput.min = todayStr;
         }
@@ -2379,8 +2646,9 @@ function calculateTotal() {
         return;
     }
     
-    const startDate = new Date(startDateInput.value);
-    const endDate = new Date(endDateInput.value);
+    // Crear fechas considerando la zona horaria local
+    const startDate = createLocalDate(startDateInput.value);
+    const endDate = createLocalDate(endDateInput.value);
     
     console.log('Start date:', startDate);
     console.log('End date:', endDate);
@@ -2389,12 +2657,16 @@ function calculateTotal() {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
+    console.log('Today (local):', today);
+    console.log('Start date (local):', startDate);
+    console.log('Comparison - startDate >= today:', startDate >= today);
+    
     // Si es hoy, verificar que sea después de la hora actual
     if (startDate.getTime() === today.getTime()) {
         const currentHour = now.getHours();
         
-        // Si es muy tarde en el día (después de las 18:00), no permitir reservas para hoy
-        if (currentHour >= 18) {
+        // Si es muy tarde en el día (después de las 22:00), no permitir reservas para hoy
+        if (currentHour >= 22) {
             showAvailabilityMessage('Es muy tarde para reservar hoy. Por favor selecciona mañana o una fecha futura.', 'danger');
             resetPriceFields();
             return;
@@ -2423,8 +2695,11 @@ function calculateTotal() {
          
          console.log('Noches calculadas:', nights);
          
-         // Mostrar inmediatamente el número de noches
-         document.getElementById('nights').value = nights + ' noche(s)';
+        // Mostrar inmediatamente el número de noches (solo si el elemento existe)
+        const nightsEl = document.getElementById('nights');
+        if (nightsEl) {
+            nightsEl.value = nights + ' noche(s)';
+        }
         
         // Obtener precio base por noche desde la página
         const basePricePerNight = {{ $effectivePrice }};
@@ -2444,17 +2719,29 @@ function calculateTotal() {
         
         // Calcular precio total básico
         const totalPrice = nights * basePricePerNight;
-        document.getElementById('total_price').value = '$' + totalPrice.toLocaleString();
+        const totalPriceEl = document.getElementById('total_price');
+        if (totalPriceEl) {
+            totalPriceEl.value = '$' + totalPrice.toLocaleString();
+        }
         
-        // Habilitar botón
-        document.getElementById('submitBtn').disabled = false;
-        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
+        // Habilitar botón (solo si existe)
+        const submitBtnEl = document.getElementById('submitBtn');
+        if (submitBtnEl) {
+            submitBtnEl.disabled = false;
+            submitBtnEl.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
+        }
         
         console.log('Precio total calculado:', totalPrice);
         console.log('Botón habilitado');
         
+        // Mostrar información de precio para usuarios no autenticados
+        if (!document.getElementById('submitBtn')) {
+            updatePriceInfoForGuests(nights, totalPrice, selectedStartDate, selectedEndDate);
+        }
+        
         // Intentar usar el servicio de precios para calcular el total con descuentos
-        fetch('/admin/pricing/calculate-price', {
+        console.log('Intentando llamar a la API de precios...');
+        fetch('/api/properties/{{ $property->id }}/calculate-price', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -2466,11 +2753,34 @@ function calculateTotal() {
                 check_out: document.getElementById('end_date').value
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Respuesta de la API recibida:', response);
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+            console.log('Headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response.text().then(text => {
+                console.log('Respuesta como texto:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Error al parsear JSON:', e);
+                    console.error('Texto recibido:', text);
+                    throw new Error('La respuesta no es JSON válido');
+                }
+            });
+        })
         .then(data => {
-            console.log('Respuesta de la API:', data);
+            console.log('Datos parseados de la API:', data);
             if (data.success) {
-                document.getElementById('total_price').value = '$' + data.data.total_price.toLocaleString();
+                const totalPriceEl = document.getElementById('total_price');
+                if (totalPriceEl) {
+                    totalPriceEl.value = '$' + data.data.total_price.toLocaleString();
+                }
                 
                 // Mostrar desglose de precios
                 showPriceBreakdown(data.data);
@@ -2488,7 +2798,9 @@ function calculateTotal() {
             }
         })
         .catch(error => {
-            console.error('Error al calcular precio con API:', error);
+            console.error('Error detallado al calcular precio con API:', error);
+            console.error('Tipo de error:', error.constructor.name);
+            console.error('Mensaje de error:', error.message);
             // Ya tenemos el precio básico calculado, no es necesario hacer nada más
         });
     } else {
@@ -2506,35 +2818,47 @@ function fallbackCalculation(nights) {
     const actualNights = nights === 0 ? 1 : nights;
     const totalPrice = actualNights * pricePerNight;
     
-    document.getElementById('nights').value = actualNights + ' noche(s)';
-    document.getElementById('total_price').value = '$' + totalPrice.toLocaleString();
-    document.getElementById('submitBtn').disabled = false;
-    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
-    
-    // Mostrar precio por noche
+    const nightsEl = document.getElementById('nights');
+    const totalPriceEl = document.getElementById('total_price');
+    const submitBtnEl = document.getElementById('submitBtn');
+    const priceBreakdownEl = document.getElementById('price-breakdown');
     const pricePerNightEl = document.getElementById('price-per-night');
     const avgNightPriceEl = document.getElementById('avg-night-price');
+    
+    if (nightsEl) nightsEl.value = actualNights + ' noche(s)';
+    if (totalPriceEl) totalPriceEl.value = '$' + totalPrice.toLocaleString();
+    if (submitBtnEl) {
+        submitBtnEl.disabled = false;
+        submitBtnEl.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
+    }
+    
+    // Mostrar precio por noche
     if (pricePerNightEl && avgNightPriceEl) {
         avgNightPriceEl.textContent = '$' + pricePerNight.toLocaleString();
         pricePerNightEl.style.display = 'block';
     }
     
-    document.getElementById('price-breakdown').style.display = 'none';
+    if (priceBreakdownEl) priceBreakdownEl.style.display = 'none';
 }
 
 // Resetear campos de precio
 function resetPriceFields() {
-    document.getElementById('nights').value = '';
-    document.getElementById('total_price').value = '';
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
-    document.getElementById('price-breakdown').style.display = 'none';
-    document.getElementById('discounts-info').innerHTML = '';
-    
+    const nightsEl = document.getElementById('nights');
+    const totalPriceEl = document.getElementById('total_price');
+    const submitBtnEl = document.getElementById('submitBtn');
+    const priceBreakdownEl = document.getElementById('price-breakdown');
+    const discountsInfoEl = document.getElementById('discounts-info');
     const pricePerNightEl = document.getElementById('price-per-night');
-    if (pricePerNightEl) {
-        pricePerNightEl.style.display = 'none';
+    
+    if (nightsEl) nightsEl.value = '';
+    if (totalPriceEl) totalPriceEl.value = '';
+    if (submitBtnEl) {
+        submitBtnEl.disabled = true;
+        submitBtnEl.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
     }
+    if (priceBreakdownEl) priceBreakdownEl.style.display = 'none';
+    if (discountsInfoEl) discountsInfoEl.innerHTML = '';
+    if (pricePerNightEl) pricePerNightEl.style.display = 'none';
 }
 
 // Mostrar desglose de precios
@@ -2668,8 +2992,8 @@ function validateForm() {
     if (startDate.getTime() === today.getTime()) {
         const currentHour = now.getHours();
         
-        // Si es muy tarde en el día (después de las 18:00), no permitir reservas para hoy
-        if (currentHour >= 18) {
+        // Si es muy tarde en el día (después de las 22:00), no permitir reservas para hoy
+        if (currentHour >= 22) {
             showAvailabilityMessage('Es muy tarde para reservar hoy. Por favor selecciona mañana o una fecha futura.', 'danger');
             return false;
         }
@@ -2707,6 +3031,80 @@ function setupBackToTop() {
             behavior: 'smooth'
         });
     });
+}
+
+// Crear reserva directamente
+async function createReservation() {
+    // Obtener fechas desde los inputs ocultos
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    if (!startDateInput || !endDateInput || !startDateInput.value || !endDateInput.value) {
+        showAvailabilityMessage('Por favor selecciona las fechas de tu reserva', 'warning');
+        return;
+    }
+    
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+
+    // Mostrar indicador de carga
+    const reserveBtn = document.getElementById('reserveBtn');
+    if (reserveBtn) {
+        reserveBtn.disabled = true;
+        reserveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando reserva...';
+    }
+
+    try {
+        // Calcular noches
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        const totalPrice = nights * {{ $property->price }};
+
+        // Crear datos de la reserva
+        const reservationData = {
+            property_id: {{ $property->id }},
+            start_date: startDate,
+            end_date: endDate,
+            guests: 1, // Valor por defecto
+            total_price: totalPrice,
+            special_requests: '',
+            _token: '{{ csrf_token() }}'
+        };
+
+        // Enviar solicitud de reserva
+        const response = await fetch('{{ route("reservations.store.public") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(reservationData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            showAvailabilityMessage('¡Reserva creada exitosamente! Te redirigiremos a tus reservas.', 'success');
+            
+            // Redirigir a la página de reservas después de 2 segundos
+            setTimeout(() => {
+                window.location.href = '{{ route("reservations.index") }}';
+            }, 2000);
+        } else {
+            const error = await response.json();
+            showAvailabilityMessage('Error al crear la reserva: ' + (error.message || 'Error desconocido'), 'danger');
+        }
+    } catch (error) {
+        console.error('Error al crear reserva:', error);
+        showAvailabilityMessage('Error al crear la reserva. Por favor intenta nuevamente.', 'danger');
+    } finally {
+        // Restaurar botón
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Reservar Ahora';
+        }
+    }
 }
 </script>
 @endsection

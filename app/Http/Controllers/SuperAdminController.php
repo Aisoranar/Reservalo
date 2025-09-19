@@ -1594,65 +1594,34 @@ class SuperAdminController extends Controller
      */
     public function approveReservation(Request $request, \App\Models\Reservation $reservation)
     {
-        $request->validate([
-            'notes' => 'nullable|string|max:500'
-        ]);
-
-        $reservation->update([
-            'status' => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-            'admin_notes' => $request->notes
-        ]);
-
-        // Registrar en auditoría
-        AuditLog::log(
-            'reservation_approved',
-            'Reservation',
-            $reservation->id,
-            auth()->id(),
-            ['status' => 'approved'],
-            ['status' => 'pending'],
-            'Reserva aprobada: ' . $reservation->id
-        );
-
-        // Notificar al usuario
-        \App\Models\Notification::createSystemNotification(
-            $reservation->user_id,
-            'Reserva Aprobada',
-            "Tu reserva #{$reservation->id} ha sido aprobada y confirmada.",
-            ['reservation_id' => $reservation->id],
-            false,
-            auth()->id()
-        );
-
-        // Enviar correo de notificación
         try {
-            $emailData = [
-                'user_name' => $reservation->user->name,
-                'property_title' => $reservation->property->name,
-                'property_location' => $reservation->property->location,
-                'check_in_date' => $reservation->check_in->format('d/m/Y'),
-                'check_in_time' => $reservation->check_in->format('H:i'),
-                'check_out_date' => $reservation->check_out->format('d/m/Y'),
-                'check_out_time' => $reservation->check_out->format('H:i'),
-                'guests' => $reservation->guests,
-                'nights' => $reservation->nights,
-                'total_amount' => number_format($reservation->total_amount, 0, ',', '.'),
-                'admin_notes' => $request->notes ?? ''
-            ];
+            $request->validate([
+                'admin_notes' => 'nullable|string|max:500'
+            ]);
 
-            \Mail::to($reservation->user->email)->send(
-                new \App\Mail\ReservationNotification('reservation_approved', $emailData)
-            );
+            $reservation->update([
+                'status' => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'admin_notes' => $request->admin_notes
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reserva aprobada correctamente',
+                'reservation' => [
+                    'id' => $reservation->id,
+                    'status' => $reservation->status,
+                    'status_badge' => '<span class="badge bg-success">Aprobada</span>'
+                ]
+            ]);
         } catch (\Exception $e) {
-            \Log::error('Error enviando correo de aprobación: ' . $e->getMessage());
+            \Log::error('Error aprobando reserva: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al aprobar la reserva: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Reserva aprobada correctamente'
-        ]);
     }
 
     /**
@@ -1660,61 +1629,34 @@ class SuperAdminController extends Controller
      */
     public function rejectReservation(Request $request, \App\Models\Reservation $reservation)
     {
-        $request->validate([
-            'reason' => 'required|string|max:500'
-        ]);
-
-        $reservation->update([
-            'status' => 'rejected',
-            'rejected_by' => auth()->id(),
-            'rejected_at' => now(),
-            'rejection_reason' => $request->reason
-        ]);
-
-        // Registrar en auditoría
-        AuditLog::log(
-            'reservation_rejected',
-            'Reservation',
-            $reservation->id,
-            auth()->id(),
-            ['status' => 'rejected'],
-            ['status' => 'pending'],
-            'Reserva rechazada: ' . $reservation->id
-        );
-
-        // Notificar al usuario
-        \App\Models\Notification::createSystemNotification(
-            $reservation->user_id,
-            'Reserva Rechazada',
-            "Tu reserva #{$reservation->id} ha sido rechazada. Motivo: {$request->reason}",
-            ['reservation_id' => $reservation->id, 'reason' => $request->reason],
-            false,
-            auth()->id()
-        );
-
-        // Enviar correo de notificación
         try {
-            $emailData = [
-                'user_name' => $reservation->user->name,
-                'property_title' => $reservation->property->name,
-                'property_location' => $reservation->property->location,
-                'check_in_date' => $reservation->check_in->format('d/m/Y'),
-                'check_out_date' => $reservation->check_out->format('d/m/Y'),
-                'guests' => $reservation->guests,
-                'rejection_reason' => $request->reason
-            ];
+            $request->validate([
+                'admin_notes' => 'nullable|string|max:500'
+            ]);
 
-            \Mail::to($reservation->user->email)->send(
-                new \App\Mail\ReservationNotification('reservation_rejected', $emailData)
-            );
+            $reservation->update([
+                'status' => 'rejected',
+                'rejected_by' => auth()->id(),
+                'rejected_at' => now(),
+                'rejection_reason' => $request->admin_notes
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reserva rechazada correctamente',
+                'reservation' => [
+                    'id' => $reservation->id,
+                    'status' => $reservation->status,
+                    'status_badge' => '<span class="badge bg-danger">Rechazada</span>'
+                ]
+            ]);
         } catch (\Exception $e) {
-            \Log::error('Error enviando correo de rechazo: ' . $e->getMessage());
+            \Log::error('Error rechazando reserva: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al rechazar la reserva: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Reserva rechazada correctamente'
-        ]);
     }
 
     /**

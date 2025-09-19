@@ -13,17 +13,20 @@ class ReservationController extends Controller
 {
     public function index()
     {
-        $reservations = Reservation::with(['user', 'property'])
+        $reservations = Reservation::with(['user', 'property.primaryImage'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        $stats = [
-            'total' => Reservation::count(),
-            'pending' => Reservation::where('status', 'pending')->count(),
-            'approved' => Reservation::where('status', 'approved')->count(),
-            'rejected' => Reservation::where('status', 'rejected')->count(),
-            'cancelled' => Reservation::where('status', 'cancelled')->count(),
-        ];
+        // Optimizar estadísticas con una sola consulta
+        $stats = DB::table('reservations')
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = "approved" THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN status = "rejected" THEN 1 ELSE 0 END) as rejected,
+                SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as cancelled
+            ')
+            ->first();
 
         return view('admin.reservations.index', compact('reservations', 'stats'));
     }
@@ -36,30 +39,54 @@ class ReservationController extends Controller
 
     public function approve(Reservation $reservation)
     {
-        $reservation->update([
-            'status' => 'approved',
-            'approved_at' => now(),
-            'approved_by' => Auth::id(),
-            'admin_notes' => request('admin_notes')
-        ]);
+        try {
+            $reservation->update([
+                'status' => 'approved',
+                'approved_at' => now(),
+                'approved_by' => Auth::id(),
+                'admin_notes' => request('admin_notes')
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Reserva aprobada exitosamente'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Reserva aprobada exitosamente',
+                'reservation' => [
+                    'id' => $reservation->id,
+                    'status' => $reservation->status,
+                    'status_badge' => '<span class="badge bg-success">Aprobada</span>'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al aprobar la reserva: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function reject(Reservation $reservation)
     {
-        $reservation->update([
-            'status' => 'rejected',
-            'admin_notes' => request('admin_notes')
-        ]);
+        try {
+            $reservation->update([
+                'status' => 'rejected',
+                'admin_notes' => request('admin_notes')
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Reserva rechazada exitosamente'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Reserva rechazada exitosamente',
+                'reservation' => [
+                    'id' => $reservation->id,
+                    'status' => $reservation->status,
+                    'status_badge' => '<span class="badge bg-danger">Rechazada</span>'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al rechazar la reserva: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function cancel(Reservation $reservation)

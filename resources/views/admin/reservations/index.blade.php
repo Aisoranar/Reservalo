@@ -120,7 +120,7 @@
                     </thead>
                     <tbody>
                         @foreach($reservations as $reservation)
-                        <tr>
+                        <tr data-reservation-id="{{ $reservation->id }}">
                             <td>
                                 <input type="checkbox" class="form-check-input reservation-checkbox" 
                                        value="{{ $reservation->id }}">
@@ -319,7 +319,7 @@ document.getElementById('selectAll').addEventListener('change', function() {
 
 // Ver reserva
 function viewReservation(id) {
-    window.open(`/admin/reservations/${id}`, '_blank');
+    window.open(`/superadmin/reservations/${id}`, '_blank');
 }
 
 // Aprobar reserva
@@ -353,7 +353,7 @@ function savePayment() {
     const form = document.getElementById('paymentForm');
     const formData = new FormData(form);
     
-    fetch(`/admin/reservations/${currentReservationId}/payment`, {
+    fetch(`/superadmin/reservations/${currentReservationId}/payment`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -375,8 +375,14 @@ function savePayment() {
 document.getElementById('confirmActionBtn').addEventListener('click', function() {
     const form = document.getElementById('notesForm');
     const formData = new FormData(form);
+    const btn = this;
+    const originalText = btn.innerHTML;
     
-    fetch(`/admin/reservations/${currentReservationId}/${currentAction}`, {
+    // Mostrar indicador de carga
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+    
+    fetch(`/superadmin/reservations/${currentReservationId}/${currentAction}`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -387,10 +393,25 @@ document.getElementById('confirmActionBtn').addEventListener('click', function()
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            // Actualizar la fila sin recargar la página
+            updateReservationRow(currentReservationId, data.reservation);
+            
+            // Cerrar modal
+            bootstrap.Modal.getInstance(document.getElementById('notesModal')).hide();
+            
+            // Mostrar notificación de éxito
+            showNotification(data.message, 'success');
         } else {
-            alert('Error: ' + data.message);
+            showNotification('Error: ' + data.message, 'error');
         }
+    })
+    .catch(error => {
+        showNotification('Error de conexión: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Restaurar botón
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     });
 });
 
@@ -408,7 +429,7 @@ function bulkAction(action) {
         return;
     }
     
-    fetch('/admin/reservations/bulk-action', {
+    fetch('/superadmin/reservations/bulk-action', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -427,6 +448,58 @@ function bulkAction(action) {
             alert('Error: ' + data.message);
         }
     });
+}
+
+// Actualizar fila de reserva
+function updateReservationRow(reservationId, reservationData) {
+    const row = document.querySelector(`tr[data-reservation-id="${reservationId}"]`);
+    if (!row) return;
+    
+    // Actualizar estado
+    const statusCell = row.querySelector('td:nth-child(7)');
+    if (statusCell) {
+        statusCell.innerHTML = reservationData.status_badge;
+    }
+    
+    // Actualizar botones de acción
+    const actionsCell = row.querySelector('td:last-child');
+    if (actionsCell && reservationData.status === 'approved') {
+        actionsCell.innerHTML = `
+            <div class="btn-group" role="group">
+                <button class="btn btn-sm btn-outline-primary" 
+                        onclick="viewReservation(${reservationId})"
+                        title="Ver detalles">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-warning" 
+                        onclick="updatePayment(${reservationId})"
+                        title="Actualizar pago">
+                    <i class="fas fa-credit-card"></i>
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Mostrar notificación
+function showNotification(message, type) {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
 }
 
 // Filtros

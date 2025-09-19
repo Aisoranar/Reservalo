@@ -887,6 +887,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Cargar datos de reserva pendiente desde localStorage
+    loadPendingReservationData();
+    
     // Elementos del formulario
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
@@ -1723,8 +1726,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isSelectingEndDate && selectedStartDate && dayDate > selectedStartDate) {
             // Verificar si el rango sería válido antes de marcar como seleccionable
             if (validateDateRange(selectedStartDate, dayDate)) {
-                dayElement.classList.add('selectable-end');
-                dayElement.title = 'Click para seleccionar fecha de salida';
+            dayElement.classList.add('selectable-end');
+            dayElement.title = 'Click para seleccionar fecha de salida';
             } else {
                 // Marcar como bloqueado para selección de rango
                 dayElement.classList.add('blocked-range');
@@ -2028,6 +2031,68 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Función para cargar datos de reserva pendiente desde localStorage
+function loadPendingReservationData() {
+    const pendingReservation = localStorage.getItem('pendingReservation');
+    if (pendingReservation) {
+        try {
+            const data = JSON.parse(pendingReservation);
+            console.log('Datos de reserva pendiente encontrados:', data);
+            
+            // Cargar datos en el formulario
+            const propertySelect = document.getElementById('property_id');
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            
+            if (propertySelect && data.property_id) {
+                propertySelect.value = data.property_id;
+                // Disparar evento change para cargar fechas ocupadas
+                propertySelect.dispatchEvent(new Event('change'));
+            }
+            
+            if (startDateInput && data.start_date) {
+                startDateInput.value = data.start_date;
+            }
+            
+            if (endDateInput && data.end_date) {
+                endDateInput.value = data.end_date;
+            }
+            
+            // Mostrar mensaje de información
+            if (data.property_name) {
+                showNotification(`Datos cargados desde: ${data.property_name}`, 'info');
+            }
+            
+            // Limpiar datos del localStorage
+            localStorage.removeItem('pendingReservation');
+            
+        } catch (error) {
+            console.error('Error al cargar datos de reserva pendiente:', error);
+            localStorage.removeItem('pendingReservation');
+        }
+    }
+}
+
+// Función para mostrar notificaciones
+function showNotification(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        <i class="fas fa-info-circle me-2"></i>${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
 </script>
 @endpush
 @endsection

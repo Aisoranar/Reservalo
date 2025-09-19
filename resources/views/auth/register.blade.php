@@ -23,6 +23,11 @@
                     <!-- Formulario de Registro -->
                     <form method="POST" action="{{ route('register') }}">
                         @csrf
+                        
+                        <!-- Campo oculto para redirección -->
+                        @if(request('redirect_to'))
+                            <input type="hidden" name="redirect_to" value="{{ request('redirect_to') }}">
+                        @endif
 
                         <!-- Name -->
                         <div class="mb-3">
