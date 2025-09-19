@@ -95,7 +95,8 @@ class SuperAdminController extends Controller
             $query->where('account_type', $request->account_type);
         }
         
-        $users = $query->orderBy('created_at', 'desc')->paginate(15);
+        $perPage = $request->get('per_page', 15);
+        $users = $query->orderBy('created_at', 'desc')->paginate($perPage);
         
         return view('superadmin.users', compact('users'));
     }
@@ -268,29 +269,67 @@ class SuperAdminController extends Controller
      */
     public function destroyUser(User $user)
     {
+        // Validaciones de seguridad
         if ($user->id === auth()->id()) {
             return redirect()->back()
                 ->with('error', 'No puedes eliminar tu propia cuenta');
         }
 
-        $oldData = $user->toArray();
-        $userName = $user->name;
-        
-        $user->delete();
+        // Verificar si el usuario tiene reservas activas
+        $activeReservations = $user->reservations()
+            ->whereIn('status', ['pending', 'approved', 'confirmed'])
+            ->count();
 
-        // Registrar en auditoría
-        AuditLog::log(
-            'user_deleted',
-            'User',
-            $user->id,
-            auth()->id(),
-            $oldData,
-            [],
-            'Usuario eliminado: ' . $userName
-        );
+        if ($activeReservations > 0) {
+            return redirect()->back()
+                ->with('error', "No se puede eliminar el usuario porque tiene {$activeReservations} reserva(s) activa(s). Primero debe cancelar o completar las reservas.");
+        }
 
-        return redirect()->route('superadmin.users')
-            ->with('success', 'Usuario eliminado correctamente');
+        // Verificar si es superadmin y hay otros superadmins
+        if ($user->role === 'superadmin') {
+            $superAdminCount = User::where('role', 'superadmin')->count();
+            if ($superAdminCount <= 1) {
+                return redirect()->back()
+                    ->with('error', 'No se puede eliminar el último superadministrador del sistema');
+            }
+        }
+
+        try {
+            $oldData = $user->toArray();
+            $userName = $user->name;
+            $userEmail = $user->email;
+            
+            // Eliminar relaciones primero (si es necesario)
+            // Las reservas se mantienen por integridad referencial
+            // pero se pueden marcar como "usuario eliminado"
+            
+            $user->delete();
+
+            // Registrar en auditoría
+            AuditLog::log(
+                'user_deleted',
+                'User',
+                $user->id,
+                auth()->id(),
+                $oldData,
+                [],
+                "Usuario eliminado: {$userName} ({$userEmail})"
+            );
+
+            return redirect()->route('superadmin.users')
+                ->with('success', "Usuario '{$userName}' eliminado correctamente");
+
+        } catch (\Exception $e) {
+            \Log::error('Error eliminando usuario: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Error al eliminar el usuario: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -1791,42 +1830,12 @@ class SuperAdminController extends Controller
     /**
      * Crear reserva manual
      */
-    public function storeManualReservation(Request $request)
+    public function storeManualReservation(\App\Http\Requests\CreateManualReservationRequest $request)
     {
-        // Validación condicional basada en el tipo de cliente
-        $validationRules = [
-            'client_type' => 'required|in:registered,guest',
-            'property_id' => 'required|exists:properties,id',
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'guests' => 'required|integer|min:1|max:20',
-            'pricing_method' => 'required|in:global,manual',
-            'total_price' => 'required|numeric|min:0',
-            'special_requests' => 'nullable|string|max:1000',
-            'admin_notes' => 'nullable|string|max:1000',
-            'status' => 'required|in:pending,approved,rejected',
-            'send_email' => 'nullable|boolean'
-        ];
-
-        // Agregar validación para precio global si se selecciona
-        if ($request->pricing_method === 'global') {
-            $validationRules['global_pricing_id'] = 'required|exists:global_pricings,id';
-        }
-
-        // Agregar validaciones específicas según el tipo de cliente
-        if ($request->client_type === 'registered') {
-            $validationRules['user_id'] = 'required|exists:users,id';
-        } else {
-            $validationRules['guest_name'] = 'required|string|max:255';
-            $validationRules['guest_email'] = 'required|email|max:255';
-            $validationRules['guest_phone'] = 'nullable|string|max:20';
-        }
-
-        $request->validate($validationRules);
-
-
         try {
-            // Preparar datos de la reserva
+            $tempAccountService = new \App\Services\TempAccountReservationService();
+            
+            // Preparar datos base de la reserva
             $reservationData = [
                 'property_id' => $request->property_id,
                 'start_date' => $request->start_date,
@@ -1839,165 +1848,75 @@ class SuperAdminController extends Controller
                 'created_by' => auth()->id(),
                 'approved_by' => $request->status === 'approved' ? auth()->id() : null,
                 'approved_at' => $request->status === 'approved' ? now() : null,
+                'pricing_method' => $request->pricing_method,
+                'global_pricing_id' => $request->global_pricing_id ?? null,
             ];
 
-            // Agregar información del precio global si se seleccionó
-            if ($request->pricing_method === 'global' && $request->global_pricing_id) {
-                $globalPricing = \App\Models\GlobalPricing::find($request->global_pricing_id);
-                if ($globalPricing) {
-                    $reservationData['pricing_method'] = 'global';
-                    $reservationData['global_pricing_id'] = $globalPricing->id;
-                    $reservationData['pricing_details'] = json_encode([
-                        'global_pricing_name' => $globalPricing->name,
-                        'base_price' => $globalPricing->base_price,
-                        'final_price' => $globalPricing->final_price,
-                        'price_type' => $globalPricing->price_type,
-                        'has_discount' => $globalPricing->has_discount,
-                        'discount_type' => $globalPricing->discount_type,
-                        'discount_percentage' => $globalPricing->discount_percentage,
-                        'discount_amount' => $globalPricing->discount_amount
-                    ]);
-                }
-            } else {
-                $reservationData['pricing_method'] = 'manual';
-            }
-
-            // Agregar datos específicos según el tipo de cliente
             if ($request->client_type === 'registered') {
-                // Verificar que user_id esté presente y no sea vacío
-                if (empty($request->user_id)) {
-                    return redirect()->back()
-                        ->withErrors(['user_id' => 'Debe seleccionar un cliente registrado'])
-                        ->withInput();
-                }
+                // Cliente registrado - crear reserva normal
                 $reservationData['user_id'] = $request->user_id;
                 $reservationData['is_guest_reservation'] = false;
+
+                // Crear reserva
+                $reservation = \App\Models\Reservation::create($reservationData);
+
+                // Registrar en auditoría
+                AuditLog::log(
+                    'manual_reservation_created',
+                    'Reservation',
+                    $reservation->id,
+                    auth()->id(),
+                    [
+                        'user_id' => $reservation->user_id,
+                        'property_id' => $reservation->property_id,
+                        'status' => $reservation->status,
+                        'total_price' => $reservation->total_price
+                    ],
+                    [],
+                    'Reserva manual creada para: ' . $reservation->customer_name
+                );
+
+                // Enviar correo si está habilitado
+                $emailResult = ['success' => true, 'message' => 'Correo no enviado'];
+                if ($request->send_email) {
+                    $emailResult = $tempAccountService->sendReservationEmail($reservation);
+                }
+
+                $successMessage = 'Reserva creada exitosamente' . 
+                                ($emailResult['success'] ? ' y correo enviado al cliente' : ' pero error en correo: ' . $emailResult['message']);
+
             } else {
-                // Crear cuenta temporal para cliente no registrado
-                $tempPassword = \Str::random(12); // Contraseña temporal
-                $tempUser = \App\Models\User::create([
+                // Cliente no registrado - crear cuenta temporal y reserva
+                $guestData = [
                     'name' => $request->guest_name,
                     'email' => $request->guest_email,
                     'phone' => $request->guest_phone,
-                    'password' => \Hash::make($tempPassword),
-                    'role' => 'user',
-                    'account_type' => 'individual',
-                    'is_active' => true,
-                    'email_verified_at' => now(),
-                    'must_change_password' => true, // Flag para obligar cambio de contraseña
-                    'temp_password' => $tempPassword, // Guardar contraseña temporal para el email
-                ]);
+                ];
 
-                $reservationData['user_id'] = $tempUser->id;
-                $reservationData['is_guest_reservation'] = false; // Ahora es un usuario registrado
-                $reservationData['guest_name'] = $request->guest_name;
-                $reservationData['guest_email'] = $request->guest_email;
-                $reservationData['guest_phone'] = $request->guest_phone;
-                $reservationData['guest_token'] = \Str::random(32); // Token único para el huésped
-                
-            }
+                $result = $tempAccountService->createReservationWithTempAccount(
+                    $reservationData,
+                    $guestData,
+                    $request->send_email ?? false
+                );
 
-            // Crear la reserva
-            $reservation = \App\Models\Reservation::create($reservationData);
-
-            // Registrar en auditoría
-            AuditLog::log(
-                'manual_reservation_created',
-                'Reservation',
-                $reservation->id,
-                auth()->id(),
-                [
-                    'user_id' => $reservation->user_id,
-                    'property_id' => $reservation->property_id,
-                    'status' => $reservation->status,
-                    'total_price' => $reservation->total_price
-                ],
-                [],
-                'Reserva manual creada para: ' . $reservation->customer_name
-            );
-
-            // Variables para el resultado del envío de correo
-            $emailSent = false;
-            $emailError = null;
-
-            // Enviar correo si está marcado
-            if ($request->has('send_email') && $request->send_email) {
-                try {
-                    $emailData = [
-                        'user_name' => $reservation->customer_name,
-                        'property_title' => $reservation->property->name,
-                        'property_location' => $reservation->property->location,
-                        'check_in_date' => $reservation->start_date ? \Carbon\Carbon::parse($reservation->start_date)->format('d/m/Y') : 'N/A',
-                        'check_in_time' => $reservation->start_date ? \Carbon\Carbon::parse($reservation->start_date)->format('H:i') : 'N/A',
-                        'check_out_date' => $reservation->end_date ? \Carbon\Carbon::parse($reservation->end_date)->format('d/m/Y') : 'N/A',
-                        'check_out_time' => $reservation->end_date ? \Carbon\Carbon::parse($reservation->end_date)->format('H:i') : 'N/A',
-                        'guests' => $reservation->guests,
-                        'nights' => $reservation->nights,
-                        'total_amount' => number_format($reservation->total_price, 0, ',', '.'),
-                        'admin_notes' => $reservation->admin_notes ?? '',
-                        'special_requests' => $reservation->special_requests ?? '',
-                        'is_guest_reservation' => $reservation->is_guest_reservation,
-                        'guest_token' => $reservation->guest_token
-                    ];
-
-                    // Si se creó una cuenta temporal, agregar información de acceso
-                    if ($request->client_type === 'guest' && isset($tempUser)) {
-                        $emailData['temp_account'] = true;
-                        $emailData['temp_email'] = $tempUser->email;
-                        $emailData['temp_password'] = $tempPassword;
-                        $emailData['login_url'] = route('login');
-                    }
-
-                    // Usar plantilla específica si se creó cuenta temporal
-                    if ($request->client_type === 'guest' && isset($tempUser)) {
-                        $emailType = 'reservation_created_temp_account';
-                    } else {
-                        $emailType = $reservation->status === 'approved' ? 'reservation_approved' : 'reservation_created';
-                    }
-                    
-                    \Mail::to($reservation->customer_email)->send(
-                        new \App\Mail\ReservationNotification($emailType, $emailData)
-                    );
-
-                    $emailSent = true;
-
-                    // Registrar en auditoría
-                    AuditLog::log(
-                        'email_sent',
-                        'Reservation',
-                        $reservation->id,
-                        auth()->id(),
-                        ['email_type' => $emailType, 'user_email' => $reservation->customer_email],
-                        [],
-                        'Correo enviado automáticamente al crear reserva manual: ' . $reservation->id
-                    );
-
-                } catch (\Exception $e) {
-                    $emailError = $e->getMessage();
-                    \Log::error('Error enviando correo de reserva manual: ' . $e->getMessage());
+                if (!$result['success']) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', $result['message']);
                 }
-            }
 
-            // Preparar mensaje de éxito con información del correo
-            $successMessage = 'Reserva creada exitosamente';
-            
-            if ($request->has('send_email') && $request->send_email) {
-                if ($emailSent) {
-                    if ($request->client_type === 'guest' && isset($tempUser)) {
-                        $successMessage .= ' y correo con cuenta temporal enviado al cliente';
-                    } else {
-                        $successMessage .= ' y correo enviado al cliente';
-                    }
-                } else {
-                    $successMessage .= ' pero hubo un error enviando el correo: ' . $emailError;
-                }
+                $successMessage = $result['message'];
             }
 
             return redirect()->route('superadmin.reservations')
                 ->with('success', $successMessage);
 
         } catch (\Exception $e) {
-            \Log::error('Error creando reserva manual: ' . $e->getMessage());
+            \Log::error('Error creando reserva manual: ' . $e->getMessage(), [
+                'request_data' => $request->all(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return redirect()->back()
                 ->withInput()
@@ -2139,5 +2058,253 @@ class SuperAdminController extends Controller
             'success' => true,
             'message' => 'Reserva eliminada correctamente'
         ]);
+    }
+
+    /**
+     * Mostrar detalles de una membresía
+     */
+    public function showMembership(Membership $membership)
+    {
+        $membership->load(['user', 'plan']);
+        
+        return view('superadmin.memberships.show', compact('membership'));
+    }
+
+    /**
+     * Mostrar formulario para crear nueva membresía
+     */
+    public function createMembership()
+    {
+        $users = User::where('is_active', true)->orderBy('name')->get();
+        $plans = MembershipPlan::where('is_active', true)->orderBy('name')->get();
+        
+        return view('superadmin.memberships.create', compact('users', 'plans'));
+    }
+
+    /**
+     * Almacenar nueva membresía
+     */
+    public function storeMembership(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'membership_plan_id' => 'required|exists:membership_plans,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'status' => 'required|in:active,inactive,expired',
+            'notes' => 'nullable|string|max:500'
+        ]);
+
+        try {
+            $membership = Membership::create([
+                'user_id' => $request->user_id,
+                'membership_plan_id' => $request->membership_plan_id,
+                'starts_at' => $request->start_date,
+                'expires_at' => $request->end_date,
+                'status' => $request->status,
+                'notes' => $request->notes,
+                'price_paid' => $request->price_paid ?? 0,
+                'currency' => 'COP'
+            ]);
+
+            // Actualizar membresía actual del usuario si está activa
+            if ($request->status === 'active') {
+                $user = User::find($request->user_id);
+                $user->update([
+                    'current_membership_id' => $membership->id,
+                    'membership_expires_at' => $request->end_date
+                ]);
+            }
+
+            // Log de auditoría
+            AuditLog::log(
+                'membership_created',
+                'Membership',
+                $membership->id,
+                auth()->id(),
+                [],
+                $membership->toArray(),
+                'Membresía creada para usuario: ' . $membership->user->name
+            );
+
+            return redirect()->route('superadmin.memberships')
+                ->with('success', 'Membresía creada correctamente');
+
+        } catch (\Exception $e) {
+            \Log::error('Error creando membresía: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al crear la membresía: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Mostrar formulario para editar membresía
+     */
+    public function editMembership(Membership $membership)
+    {
+        $users = User::where('is_active', true)->orderBy('name')->get();
+        $plans = MembershipPlan::where('is_active', true)->orderBy('name')->get();
+        
+        return view('superadmin.memberships.edit', compact('membership', 'users', 'plans'));
+    }
+
+    /**
+     * Actualizar membresía
+     */
+    public function updateMembership(Request $request, Membership $membership)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'membership_plan_id' => 'required|exists:membership_plans,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'status' => 'required|in:active,inactive,expired',
+            'notes' => 'nullable|string|max:500'
+        ]);
+
+        try {
+            $oldData = $membership->toArray();
+            
+            $membership->update([
+                'user_id' => $request->user_id,
+                'membership_plan_id' => $request->membership_plan_id,
+                'starts_at' => $request->start_date,
+                'expires_at' => $request->end_date,
+                'status' => $request->status,
+                'notes' => $request->notes
+            ]);
+
+            // Actualizar membresía actual del usuario si está activa
+            if ($request->status === 'active') {
+                $user = User::find($request->user_id);
+                $user->update([
+                    'current_membership_id' => $membership->id,
+                    'membership_expires_at' => $request->end_date
+                ]);
+            } elseif ($membership->user->current_membership_id == $membership->id) {
+                // Si esta membresía era la actual y ya no está activa, limpiar
+                $membership->user->update([
+                    'current_membership_id' => null,
+                    'membership_expires_at' => null
+                ]);
+            }
+
+            // Log de auditoría
+            AuditLog::log(
+                'membership_updated',
+                'Membership',
+                $membership->id,
+                auth()->id(),
+                $oldData,
+                $membership->toArray(),
+                'Membresía actualizada para usuario: ' . $membership->user->name
+            );
+
+            return redirect()->route('superadmin.memberships')
+                ->with('success', 'Membresía actualizada correctamente');
+
+        } catch (\Exception $e) {
+            \Log::error('Error actualizando membresía: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al actualizar la membresía: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Eliminar membresía
+     */
+    public function destroyMembership(Membership $membership)
+    {
+        try {
+            $userName = $membership->user->name;
+            $oldData = $membership->toArray();
+            
+            // Si esta membresía es la actual del usuario, limpiar
+            if ($membership->user->current_membership_id == $membership->id) {
+                $membership->user->update([
+                    'current_membership_id' => null,
+                    'membership_expires_at' => null
+                ]);
+            }
+            
+            $membership->delete();
+
+            // Log de auditoría
+            AuditLog::log(
+                'membership_deleted',
+                'Membership',
+                $membership->id,
+                auth()->id(),
+                $oldData,
+                [],
+                'Membresía eliminada para usuario: ' . $userName
+            );
+
+            return redirect()->route('superadmin.memberships')
+                ->with('success', 'Membresía eliminada correctamente');
+
+        } catch (\Exception $e) {
+            \Log::error('Error eliminando membresía: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al eliminar la membresía: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cambiar estado de membresía
+     */
+    public function toggleMembershipStatus(Request $request, Membership $membership)
+    {
+        $request->validate([
+            'status' => 'required|in:active,inactive,expired'
+        ]);
+
+        try {
+            $oldStatus = $membership->status;
+            $membership->update([
+                'status' => $request->status,
+                'updated_by' => auth()->id()
+            ]);
+
+            // Actualizar membresía actual del usuario si está activa
+            if ($request->status === 'active') {
+                $membership->user->update([
+                    'current_membership_id' => $membership->id,
+                    'membership_expires_at' => $membership->expires_at
+                ]);
+            } elseif ($membership->user->current_membership_id == $membership->id) {
+                // Si esta membresía era la actual y ya no está activa, limpiar
+                $membership->user->update([
+                    'current_membership_id' => null,
+                    'membership_expires_at' => null
+                ]);
+            }
+
+            // Log de auditoría
+            AuditLog::log(
+                'membership_status_changed',
+                'Membership',
+                $membership->id,
+                auth()->id(),
+                ['old_status' => $oldStatus],
+                ['new_status' => $request->status],
+                'Estado de membresía cambiado de ' . $oldStatus . ' a ' . $request->status
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Estado de membresía actualizado correctamente',
+                'new_status' => $request->status
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error cambiando estado de membresía: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cambiar el estado: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -227,12 +227,24 @@
                                 <li><hr class="dropdown-divider"></li>
                                 
                                 <!-- Acciones Rápidas -->
-                                <li><a class="dropdown-item" href="{{ route('superadmin.toggle-system') }}">
-                                    <i class="fas fa-power-off me-2 text-danger"></i>Activar/Desactivar Sistema
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ route('superadmin.toggle-maintenance') }}">
-                                    <i class="fas fa-tools me-2 text-warning"></i>Modo Mantenimiento
-                                </a></li>
+                                <li>
+                                    <form method="POST" action="{{ route('superadmin.toggle-system') }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item btn btn-link text-start p-0 w-100" 
+                                                onclick="return confirm('¿Estás seguro de que quieres cambiar el estado del sistema?')">
+                                            <i class="fas fa-power-off me-2 text-danger"></i>Activar/Desactivar Sistema
+                                        </button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="POST" action="{{ route('superadmin.toggle-maintenance') }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item btn btn-link text-start p-0 w-100" 
+                                                onclick="return confirm('¿Estás seguro de que quieres cambiar el modo de mantenimiento?')">
+                                            <i class="fas fa-tools me-2 text-warning"></i>Modo Mantenimiento
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </li>
                     @elseif(auth()->user()->isAdmin())

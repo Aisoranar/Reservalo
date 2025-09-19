@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'active.user' => \App\Http\Middleware\CheckActiveUser::class,
         'role' => \App\Http\Middleware\CheckRole::class,
         'must.change.password' => \App\Http\Middleware\CheckMustChangePassword::class,
+        'temp.account.security' => \App\Http\Middleware\CheckTempAccountSecurity::class,
         'permission' => \App\Http\Middleware\CheckPermission::class,
         'membership' => \App\Http\Middleware\CheckMembership::class,
         'system.active' => \App\Http\Middleware\CheckSystemActive::class,

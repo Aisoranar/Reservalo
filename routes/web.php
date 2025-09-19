@@ -117,7 +117,15 @@ Route::middleware(['auth', 'active.user', 'must.change.password'])->group(functi
         Route::delete('/membership-plans/{plan}', [SuperAdminController::class, 'destroyMembershipPlan'])->name('membership-plans.destroy');
         Route::post('/membership-plans/{plan}/toggle-status', [SuperAdminController::class, 'toggleMembershipPlanStatus'])->name('membership-plans.toggle-status');
         Route::post('/membership-plans/{plan}/set-default', [SuperAdminController::class, 'setDefaultMembershipPlan'])->name('membership-plans.set-default');
+        // Gestión de membresías
         Route::get('/memberships', [SuperAdminController::class, 'memberships'])->name('memberships');
+        Route::get('/memberships/create', [SuperAdminController::class, 'createMembership'])->name('memberships.create');
+        Route::post('/memberships', [SuperAdminController::class, 'storeMembership'])->name('memberships.store');
+        Route::get('/memberships/{membership}', [SuperAdminController::class, 'showMembership'])->name('memberships.show');
+        Route::get('/memberships/{membership}/edit', [SuperAdminController::class, 'editMembership'])->name('memberships.edit');
+        Route::put('/memberships/{membership}', [SuperAdminController::class, 'updateMembership'])->name('memberships.update');
+        Route::delete('/memberships/{membership}', [SuperAdminController::class, 'destroyMembership'])->name('memberships.destroy');
+        Route::post('/memberships/{membership}/toggle-status', [SuperAdminController::class, 'toggleMembershipStatus'])->name('memberships.toggle-status');
         
         // Gestión de reservas
         Route::get('/reservations', [SuperAdminController::class, 'reservations'])->name('reservations');

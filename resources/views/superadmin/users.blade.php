@@ -61,6 +61,22 @@
                                 <option value="business" {{ request('account_type') === 'business' ? 'selected' : '' }}>Business</option>
                             </select>
                         </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Por página</label>
+                            <div class="position-relative">
+                                <select class="form-select" name="per_page" id="perPageSelect" onchange="changePerPage()">
+                                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
+                                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                                </select>
+                                <div id="perPageLoader" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display: none;">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary me-2">
                                 <i class="fas fa-search me-1"></i>Filtrar
@@ -176,6 +192,42 @@
                                                             title="{{ $user->is_active ? 'Desactivar' : 'Activar' }}">
                                                         <i class="fas fa-{{ $user->is_active ? 'ban' : 'check' }}"></i>
                                                     </button>
+                                                    @php
+                                                        $canDelete = true;
+                                                        $deleteReason = '';
+                                                        
+                                                        // Verificar si tiene reservas activas
+                                                        $activeReservations = $user->reservations()
+                                                            ->whereIn('status', ['pending', 'approved', 'confirmed'])
+                                                            ->count();
+                                                        
+                                                        if ($activeReservations > 0) {
+                                                            $canDelete = false;
+                                                            $deleteReason = "Tiene {$activeReservations} reserva(s) activa(s)";
+                                                        }
+                                                        
+                                                        // Verificar si es el último superadmin
+                                                        if ($user->role === 'superadmin') {
+                                                            $superAdminCount = \App\Models\User::where('role', 'superadmin')->count();
+                                                            if ($superAdminCount <= 1) {
+                                                                $canDelete = false;
+                                                                $deleteReason = 'Es el último superadministrador';
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    
+                                                    @if($canDelete)
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                                onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')" 
+                                                                title="Eliminar usuario">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                                disabled title="No se puede eliminar: {{ $deleteReason }}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </td>
@@ -195,10 +247,53 @@
                     <!-- Paginación -->
                     @if($users->hasPages())
                         <div class="d-flex justify-content-center mt-4">
-                            {{ $users->appends(request()->query())->links() }}
+                            {{ $users->appends(request()->query())->links('vendor.pagination.bootstrap-5') }}
                         </div>
                     @endif
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteUserModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación de Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                </div>
+                <p>¿Estás seguro de que quieres eliminar al usuario <strong id="userNameToDelete"></strong>?</p>
+                <p>Esta acción eliminará permanentemente:</p>
+                <ul class="list-unstyled ms-3">
+                    <li><i class="fas fa-user text-danger me-2"></i>El usuario y todos sus datos personales</li>
+                    <li><i class="fas fa-calendar text-danger me-2"></i>Sus reservas (se marcarán como canceladas)</li>
+                    <li><i class="fas fa-star text-danger me-2"></i>Sus reseñas y comentarios</li>
+                    <li><i class="fas fa-history text-danger me-2"></i>Su historial de actividad</li>
+                </ul>
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confirmDeleteCheckbox">
+                    <label class="form-check-label" for="confirmDeleteCheckbox">
+                        Entiendo las consecuencias y quiero proceder con la eliminación
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="fas fa-trash me-1"></i>Eliminar Usuario
+                </button>
             </div>
         </div>
     </div>
@@ -254,6 +349,67 @@ function toggleUserStatus(userId, newStatus) {
             alert('Error al cambiar el estado del usuario: ' + error.message);
         });
     }
+}
+
+let userIdToDelete = null;
+
+function deleteUser(userId, userName) {
+    userIdToDelete = userId;
+    document.getElementById('userNameToDelete').textContent = userName;
+    
+    // Resetear el checkbox y botón
+    document.getElementById('confirmDeleteCheckbox').checked = false;
+    document.getElementById('confirmDeleteBtn').disabled = true;
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+    modal.show();
+}
+
+// Event listener para el checkbox de confirmación
+document.getElementById('confirmDeleteCheckbox').addEventListener('change', function() {
+    document.getElementById('confirmDeleteBtn').disabled = !this.checked;
+});
+
+// Event listener para el botón de confirmación
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (userIdToDelete && document.getElementById('confirmDeleteCheckbox').checked) {
+        // Crear formulario para enviar DELETE request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ url('/superadmin/users') }}/${userIdToDelete}`;
+        
+        // Agregar token CSRF
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfToken);
+        
+        // Agregar método DELETE
+        const methodField = document.createElement('input');
+        methodField.type = 'hidden';
+        methodField.name = '_method';
+        methodField.value = 'DELETE';
+        form.appendChild(methodField);
+        
+        // Agregar al DOM y enviar
+        document.body.appendChild(form);
+        form.submit();
+    }
+});
+
+// Función para cambiar elementos por página
+function changePerPage() {
+    const loader = document.getElementById('perPageLoader');
+    const select = document.getElementById('perPageSelect');
+    
+    // Mostrar loader
+    loader.style.display = 'block';
+    select.disabled = true;
+    
+    // Enviar formulario
+    document.querySelector('form').submit();
 }
 </script>
 @endpush
