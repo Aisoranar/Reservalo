@@ -80,7 +80,9 @@ class FavoriteController extends Controller
 
         $favorites = $user->favorites()->with([
             'property.city.department',
-            'property.reviews',
+            'property.reviews' => function($query) {
+                $query->select('id', 'property_id', 'overall_rating');
+            },
             'property.primaryImage'
         ])->paginate(12);
 
