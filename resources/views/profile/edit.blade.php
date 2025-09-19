@@ -205,7 +205,7 @@
                                         <i class="fas fa-calendar-day"></i>
                                     </div>
                                     <div class="stat-info">
-                                        <div class="stat-value">{{ auth()->user()->reservations()->where('status', 'confirmed')->count() }}</div>
+                                        <div class="stat-value">{{ auth()->user()->reservations()->where('status', 'approved')->count() }}</div>
                                         <div class="stat-label">Reservas Confirmadas</div>
                                     </div>
                                 </div>

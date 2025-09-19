@@ -308,8 +308,20 @@
 @push('scripts')
 <script>
 function showLogDetails(logId) {
-    fetch(`/superadmin/audit-logs/${logId}`)
-        .then(response => response.json())
+    fetch(`/superadmin/audit-logs/${logId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 const log = data.log;
@@ -365,7 +377,7 @@ function showLogDetails(logId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cargar los detalles del log');
+            alert('Error al cargar los detalles del log: ' + error.message);
         });
 }
 

@@ -28,7 +28,7 @@
                         <div class="stat-label">Total Reservas</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number">{{ $reservations->where('status', 'confirmed')->count() }}</div>
+                        <div class="stat-number">{{ $reservations->where('status', 'approved')->count() }}</div>
                         <div class="stat-label">Confirmadas</div>
                     </div>
                     <div class="stat-item">
@@ -69,7 +69,7 @@
                                 <select class="form-select form-select-sm" id="statusFilter" style="width: auto;">
                                     <option value="">Todos los estados</option>
                                     <option value="pending">Pendientes</option>
-                                    <option value="confirmed">Confirmadas</option>
+                                    <option value="approved">Aprobadas</option>
                                     <option value="completed">Completadas</option>
                                     <option value="cancelled">Canceladas</option>
                                     <option value="rejected">Rechazadas</option>

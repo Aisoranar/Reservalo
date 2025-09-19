@@ -74,14 +74,12 @@ class AuditLogging
 
         // Registrar en auditoría
         AuditLog::log(
-            auth()->id(),
             $action,
             $this->getModelType($routeName),
             $this->getModelId($request),
+            auth()->id(),
             $data['old_values'] ?? null,
             $data['new_values'] ?? null,
-            $request->ip(),
-            $request->userAgent(),
             $this->getDescription($routeName, $method, $data)
         );
     }
@@ -120,6 +118,7 @@ class AuditLogging
         if (str_contains($routeName, 'users')) return 'User';
         if (str_contains($routeName, 'roles')) return 'Role';
         if (str_contains($routeName, 'permissions')) return 'Permission';
+        if (str_contains($routeName, 'membership-plans')) return 'MembershipPlan';
         if (str_contains($routeName, 'memberships')) return 'Membership';
         if (str_contains($routeName, 'settings')) return 'SystemSetting';
         if (str_contains($routeName, 'properties')) return 'Property';
@@ -133,11 +132,38 @@ class AuditLogging
      */
     private function getModelId(Request $request): ?int
     {
-        return $request->route('id') ?? 
-               $request->route('user') ?? 
-               $request->route('role') ?? 
-               $request->route('membership') ?? 
-               null;
+        // Intentar obtener el ID directamente
+        $id = $request->route('id');
+        if ($id && is_numeric($id)) {
+            return (int) $id;
+        }
+
+        // Verificar si hay un modelo resuelto automáticamente
+        $user = $request->route('user');
+        if ($user) {
+            if (is_object($user)) {
+                return $user->id ? (int) $user->id : null;
+            }
+            return is_numeric($user) ? (int) $user : null;
+        }
+
+        $role = $request->route('role');
+        if ($role) {
+            if (is_object($role)) {
+                return $role->id ? (int) $role->id : null;
+            }
+            return is_numeric($role) ? (int) $role : null;
+        }
+
+        $membership = $request->route('membership');
+        if ($membership) {
+            if (is_object($membership)) {
+                return $membership->id ? (int) $membership->id : null;
+            }
+            return is_numeric($membership) ? (int) $membership : null;
+        }
+
+        return null;
     }
 
     /**

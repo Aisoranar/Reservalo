@@ -172,7 +172,7 @@
                                                 </a>
                                                 @if($user->id !== auth()->id())
                                                     <button type="button" class="btn btn-sm btn-outline-{{ $user->is_active ? 'danger' : 'success' }}" 
-                                                            onclick="toggleUserStatus({{ $user->id }}, {{ $user->is_active ? 'false' : 'true' }})" 
+                                                            onclick="toggleUserStatus({{ $user->id }}, '{{ $user->is_active ? 'false' : 'true' }}')" 
                                                             title="{{ $user->is_active ? 'Desactivar' : 'Activar' }}">
                                                         <i class="fas fa-{{ $user->is_active ? 'ban' : 'check' }}"></i>
                                                     </button>
@@ -208,18 +208,41 @@
 <script>
 function toggleUserStatus(userId, newStatus) {
     const action = newStatus === 'true' ? 'activar' : 'desactivar';
+    const isActive = newStatus === 'true';
     
     if (confirm(`¿Estás seguro de que quieres ${action} este usuario?`)) {
-        fetch(`/superadmin/users/${userId}/toggle-status`, {
+        fetch(`{{ url('/superadmin/users') }}/${userId}/toggle-status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ is_active: newStatus === 'true' })
+            credentials: 'same-origin',
+            body: JSON.stringify({ is_active: isActive })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return response.text().then(text => {
+                console.log('Response text:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    console.error('Response was not JSON:', text);
+                    throw new Error('La respuesta del servidor no es JSON válido');
+                }
+            });
+        })
         .then(data => {
+            console.log('Parsed data:', data);
             if (data.success) {
                 location.reload();
             } else {
@@ -227,8 +250,8 @@ function toggleUserStatus(userId, newStatus) {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Error al cambiar el estado del usuario');
+            console.error('Error completo:', error);
+            alert('Error al cambiar el estado del usuario: ' + error.message);
         });
     }
 }

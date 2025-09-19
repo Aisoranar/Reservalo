@@ -84,10 +84,69 @@ Route::middleware(['auth', 'active.user'])->group(function () {
     Route::middleware(['role:superadmin', 'audit.logging'])->prefix('superadmin')->name('superadmin.')->group(function () {
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
+        Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('users.create');
+        Route::post('/users', [SuperAdminController::class, 'storeUser'])->name('users.store');
+        Route::get('/users/{user}', [SuperAdminController::class, 'showUser'])->name('users.show');
+        Route::get('/users/{user}/edit', [SuperAdminController::class, 'editUser'])->name('users.edit');
+        Route::put('/users/{user}', [SuperAdminController::class, 'updateUser'])->name('users.update');
+        Route::delete('/users/{user}', [SuperAdminController::class, 'destroyUser'])->name('users.destroy');
+        Route::post('/users/{user}/toggle-status', [SuperAdminController::class, 'toggleUserStatus'])->name('users.toggle-status');
+        Route::post('/users/{user}/assign-role', [SuperAdminController::class, 'assignRole'])->name('users.assign-role');
+        Route::delete('/users/{user}/remove-role/{role}', [SuperAdminController::class, 'removeRole'])->name('users.remove-role');
         Route::get('/roles', [SuperAdminController::class, 'roles'])->name('roles');
+        Route::get('/roles/create', [SuperAdminController::class, 'createRole'])->name('roles.create');
+        Route::post('/roles', [SuperAdminController::class, 'storeRole'])->name('roles.store');
+        Route::get('/roles/{role}', [SuperAdminController::class, 'showRole'])->name('roles.show');
+        Route::get('/roles/{role}/edit', [SuperAdminController::class, 'editRole'])->name('roles.edit');
+        Route::put('/roles/{role}', [SuperAdminController::class, 'updateRole'])->name('roles.update');
+        Route::delete('/roles/{role}', [SuperAdminController::class, 'destroyRole'])->name('roles.destroy');
         Route::get('/permissions', [SuperAdminController::class, 'permissions'])->name('permissions');
+        Route::get('/permissions/create', [SuperAdminController::class, 'createPermission'])->name('permissions.create');
+        Route::post('/permissions', [SuperAdminController::class, 'storePermission'])->name('permissions.store');
+        Route::get('/permissions/{permission}', [SuperAdminController::class, 'showPermission'])->name('permissions.show');
+        Route::get('/permissions/{permission}/edit', [SuperAdminController::class, 'editPermission'])->name('permissions.edit');
+        Route::put('/permissions/{permission}', [SuperAdminController::class, 'updatePermission'])->name('permissions.update');
+        Route::delete('/permissions/{permission}', [SuperAdminController::class, 'destroyPermission'])->name('permissions.destroy');
+        Route::post('/permissions/{permission}/toggle-status', [SuperAdminController::class, 'togglePermissionStatus'])->name('permissions.toggle-status');
         Route::get('/membership-plans', [SuperAdminController::class, 'membershipPlans'])->name('membership-plans');
+        Route::get('/membership-plans/create', [SuperAdminController::class, 'createMembershipPlan'])->name('membership-plans.create');
+        Route::post('/membership-plans', [SuperAdminController::class, 'storeMembershipPlan'])->name('membership-plans.store');
+        Route::get('/membership-plans/{plan}', [SuperAdminController::class, 'showMembershipPlan'])->name('membership-plans.show');
+        Route::get('/membership-plans/{plan}/edit', [SuperAdminController::class, 'editMembershipPlan'])->name('membership-plans.edit');
+        Route::put('/membership-plans/{plan}', [SuperAdminController::class, 'updateMembershipPlan'])->name('membership-plans.update');
+        Route::delete('/membership-plans/{plan}', [SuperAdminController::class, 'destroyMembershipPlan'])->name('membership-plans.destroy');
+        Route::post('/membership-plans/{plan}/toggle-status', [SuperAdminController::class, 'toggleMembershipPlanStatus'])->name('membership-plans.toggle-status');
+        Route::post('/membership-plans/{plan}/set-default', [SuperAdminController::class, 'setDefaultMembershipPlan'])->name('membership-plans.set-default');
         Route::get('/memberships', [SuperAdminController::class, 'memberships'])->name('memberships');
+        
+        // Gestión de reservas
+        Route::get('/reservations', [SuperAdminController::class, 'reservations'])->name('reservations');
+        Route::get('/reservations/pending', [SuperAdminController::class, 'pendingReservations'])->name('reservations.pending');
+        Route::get('/reservations/create', [SuperAdminController::class, 'createManualReservation'])->name('reservations.create');
+        Route::post('/reservations/store-manual', [SuperAdminController::class, 'storeManualReservation'])->name('reservations.store-manual');
+        Route::get('/reservations/occupied-dates', [SuperAdminController::class, 'getOccupiedDates'])->name('reservations.occupied-dates');
+        Route::get('/reservations/{reservation}', [SuperAdminController::class, 'showReservation'])->name('reservations.show');
+        Route::post('/reservations/{reservation}/approve', [SuperAdminController::class, 'approveReservation'])->name('reservations.approve');
+        Route::post('/reservations/{reservation}/reject', [SuperAdminController::class, 'rejectReservation'])->name('reservations.reject');
+        Route::post('/reservations/{reservation}/send-email', [SuperAdminController::class, 'sendEmail'])->name('reservations.send-email');
+        
+        // Notificaciones
+        Route::get('/notifications', [SuperAdminController::class, 'notifications'])->name('notifications');
+        Route::post('/notifications/{notification}/mark-read', [SuperAdminController::class, 'markNotificationAsRead'])->name('notifications.mark-read');
+        Route::post('/notifications/mark-all-read', [SuperAdminController::class, 'markAllNotificationsAsRead'])->name('notifications.mark-all-read');
+        
+        // Plantillas de correo
+        Route::get('/email-templates', [App\Http\Controllers\EmailTemplateController::class, 'index'])->name('email-templates');
+        Route::get('/email-templates/create', [App\Http\Controllers\EmailTemplateController::class, 'create'])->name('email-templates.create');
+        Route::post('/email-templates', [App\Http\Controllers\EmailTemplateController::class, 'store'])->name('email-templates.store');
+        Route::get('/email-templates/{emailTemplate}', [App\Http\Controllers\EmailTemplateController::class, 'show'])->name('email-templates.show');
+        Route::get('/email-templates/{emailTemplate}/edit', [App\Http\Controllers\EmailTemplateController::class, 'edit'])->name('email-templates.edit');
+        Route::put('/email-templates/{emailTemplate}', [App\Http\Controllers\EmailTemplateController::class, 'update'])->name('email-templates.update');
+        Route::delete('/email-templates/{emailTemplate}', [App\Http\Controllers\EmailTemplateController::class, 'destroy'])->name('email-templates.destroy');
+        Route::post('/email-templates/{emailTemplate}/toggle-status', [App\Http\Controllers\EmailTemplateController::class, 'toggleStatus'])->name('email-templates.toggle-status');
+        Route::post('/email-templates/{emailTemplate}/preview', [App\Http\Controllers\EmailTemplateController::class, 'preview'])->name('email-templates.preview');
+        Route::post('/email-templates/{emailTemplate}/send-test', [App\Http\Controllers\EmailTemplateController::class, 'sendTest'])->name('email-templates.send-test');
+        Route::post('/email-templates/create-defaults', [App\Http\Controllers\EmailTemplateController::class, 'createDefaults'])->name('email-templates.create-defaults');
         Route::get('/settings', [SuperAdminController::class, 'settings'])->name('settings');
         Route::post('/settings', [SuperAdminController::class, 'updateSettings'])->name('settings.update');
         Route::post('/settings/reset', [SuperAdminController::class, 'resetSettings'])->name('settings.reset');
@@ -96,6 +155,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::get('/reports', [SuperAdminController::class, 'reports'])->name('reports');
         Route::get('/reports/export', [SuperAdminController::class, 'exportReports'])->name('reports.export');
         Route::get('/audit-logs', [SuperAdminController::class, 'auditLogs'])->name('audit-logs');
+        Route::get('/audit-logs/{log}', [SuperAdminController::class, 'showAuditLog'])->name('audit-logs.show');
         Route::get('/audit-logs/export', [SuperAdminController::class, 'exportAuditLogs'])->name('audit-logs.export');
         Route::post('/audit-logs/cleanup', [SuperAdminController::class, 'cleanupAuditLogs'])->name('audit-logs.cleanup');
     });

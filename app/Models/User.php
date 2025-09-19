@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
@@ -88,6 +89,28 @@ class User extends Authenticatable
         return $this->hasMany(Reservation::class);
     }
 
+    /**
+     * Vincular reservas de huésped cuando el usuario se registra
+     */
+    public function linkGuestReservations()
+    {
+        // Buscar reservas de huésped con el mismo email
+        $guestReservations = \App\Models\Reservation::where('is_guest_reservation', true)
+            ->where('guest_email', $this->email)
+            ->whereNull('user_id')
+            ->get();
+
+        foreach ($guestReservations as $reservation) {
+            $reservation->update([
+                'user_id' => $this->id,
+                'is_guest_reservation' => false,
+                'guest_token' => null // Limpiar el token ya que ahora está vinculado
+            ]);
+        }
+
+        return $guestReservations->count();
+    }
+
     public function propertyReviews(): HasMany
     {
         return $this->hasMany(PropertyReview::class);
@@ -120,9 +143,9 @@ class User extends Authenticatable
         return $this->hasMany(AuditLog::class);
     }
 
-    public function properties(): HasMany
+    public function ownedProperties(): HasMany
     {
-        return $this->hasMany(Property::class);
+        return $this->hasMany(Property::class, 'owner_id');
     }
 
     /**

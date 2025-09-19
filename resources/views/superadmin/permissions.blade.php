@@ -75,7 +75,20 @@
                 <div class="card shadow">
                     <div class="card-header py-3">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-{{ $category === 'system' ? 'cogs' : ($category === 'users' ? 'users' : ($category === 'properties' ? 'home' : ($category === 'reservations' ? 'calendar' : ($category === 'memberships' ? 'gem' : ($category === 'reports' ? 'chart-bar' : 'key')))) }} me-2"></i>
+                            @php
+                                $icons = [
+                                    'system' => 'cogs',
+                                    'users' => 'users',
+                                    'properties' => 'home',
+                                    'reservations' => 'calendar',
+                                    'memberships' => 'gem',
+                                    'reports' => 'chart-bar',
+                                    'roles' => 'user-tag',
+                                    'profile' => 'user-circle'
+                                ];
+                                $icon = $icons[$category] ?? 'key';
+                            @endphp
+                            <i class="fas fa-{{ $icon }} me-2"></i>
                             {{ ucfirst($category) }} ({{ count($permissions) }} permisos)
                         </h6>
                     </div>
@@ -109,7 +122,7 @@
                                                         <li><hr class="dropdown-divider"></li>
                                                         <li>
                                                             <button class="dropdown-item text-{{ $permission->is_active ? 'warning' : 'success' }}" 
-                                                                    onclick="togglePermissionStatus({{ $permission->id }}, {{ $permission->is_active ? 'false' : 'true' }})">
+                                                                    onclick="togglePermissionStatus({{ $permission->id }}, '{{ $permission->is_active ? 'false' : 'true' }}')">
                                                                 <i class="fas fa-{{ $permission->is_active ? 'ban' : 'check' }} me-2"></i>
                                                                 {{ $permission->is_active ? 'Desactivar' : 'Activar' }}
                                                             </button>

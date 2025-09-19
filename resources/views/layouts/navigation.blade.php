@@ -7,8 +7,8 @@
                 <i class="fas fa-home"></i>
             </div>
             <div>
-                <span class="fw-bold">Reservalo</span>
-                <small class="d-block text-white-50" style="font-size: 0.7rem;">Tu lugar perfecto</small>
+                <span class="fw-bold">{{ \App\Models\SystemSetting::get('site_name', 'Reservalo') }}</span>
+                <small class="d-block text-white-50" style="font-size: 0.7rem;">{{ \App\Models\SystemSetting::get('site_description', 'Tu lugar perfecto') }}</small>
             </div>
         </a>
 
@@ -163,6 +163,27 @@
                                     </ul>
                                 </li>
                                 
+                                <!-- Gestión de Reservas -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-calendar-check me-2 text-warning"></i>Reservas
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reservations') }}">
+                                            <i class="fas fa-list me-2"></i>Todas las Reservas
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reservations.create') }}">
+                                            <i class="fas fa-plus me-2"></i>Crear Reserva
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reservations.pending') }}">
+                                            <i class="fas fa-clock me-2"></i>Pendientes
+                                            @if(\App\Models\Reservation::where('status', 'pending')->count() > 0)
+                                                <span class="badge bg-danger ms-1">{{ \App\Models\Reservation::where('status', 'pending')->count() }}</span>
+                                            @endif
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
                                 <!-- Gestión de Membresías -->
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -176,6 +197,13 @@
                                             <i class="fas fa-users-cog me-2"></i>Gestionar
                                         </a></li>
                                     </ul>
+                                </li>
+                                
+                                <!-- Plantillas de Correo -->
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('superadmin.email-templates*') ? 'active' : '' }}" href="{{ route('superadmin.email-templates') }}">
+                                        <i class="fas fa-envelope me-1"></i>Plantillas de Correo
+                                    </a>
                                 </li>
                                 
                                 <!-- Reportes -->

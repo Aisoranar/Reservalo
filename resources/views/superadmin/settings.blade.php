@@ -305,12 +305,6 @@
                     </div>
                 </div>
                 
-                <!-- Botón de Guardar Flotante -->
-                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1000;">
-                    <button type="submit" class="btn btn-success btn-lg shadow-lg" style="border-radius: 50px; padding: 15px 30px;">
-                        <i class="fas fa-save me-2"></i>GUARDAR
-                    </button>
-                </div>
             </form>
         </div>
     </div>

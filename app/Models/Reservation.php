@@ -24,7 +24,14 @@ class Reservation extends Model
         'admin_notes',
         'approved_at',
         'approved_by',
-        'paid_at'
+        'paid_at',
+        'created_by',
+        'guests',
+        'guest_name',
+        'guest_email',
+        'guest_phone',
+        'is_guest_reservation',
+        'guest_token'
     ];
 
     protected $casts = [
@@ -44,6 +51,51 @@ class Reservation extends Model
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Scope para reservas de huéspedes
+     */
+    public function scopeGuestReservations($query)
+    {
+        return $query->where('is_guest_reservation', true);
+    }
+
+    /**
+     * Scope para reservas de usuarios registrados
+     */
+    public function scopeUserReservations($query)
+    {
+        return $query->where('is_guest_reservation', false);
+    }
+
+    /**
+     * Obtener el nombre del cliente (usuario o huésped)
+     */
+    public function getCustomerNameAttribute()
+    {
+        return $this->is_guest_reservation ? $this->guest_name : $this->user->name;
+    }
+
+    /**
+     * Obtener el email del cliente (usuario o huésped)
+     */
+    public function getCustomerEmailAttribute()
+    {
+        return $this->is_guest_reservation ? $this->guest_email : $this->user->email;
+    }
+
+    /**
+     * Obtener el teléfono del cliente (usuario o huésped)
+     */
+    public function getCustomerPhoneAttribute()
+    {
+        return $this->is_guest_reservation ? $this->guest_phone : $this->user->phone;
     }
 
     public function scopePending($query)
@@ -73,6 +125,9 @@ class Reservation extends Model
 
     public function getNightsAttribute()
     {
+        if (!$this->start_date || !$this->end_date) {
+            return 0;
+        }
         return $this->start_date->diffInDays($this->end_date);
     }
 
@@ -98,5 +153,21 @@ class Reservation extends Model
     {
         return $this->status === 'pending' || 
                ($this->status === 'approved' && $this->start_date->isFuture());
+    }
+
+    /**
+     * Accessor para check_in (alias de start_date)
+     */
+    public function getCheckInAttribute()
+    {
+        return $this->start_date;
+    }
+
+    /**
+     * Accessor para check_out (alias de end_date)
+     */
+    public function getCheckOutAttribute()
+    {
+        return $this->end_date;
     }
 }

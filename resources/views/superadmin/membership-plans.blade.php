@@ -146,7 +146,13 @@
 
                         <div class="mb-3">
                             <small class="text-muted">Membresías Activas</small>
-                            <div class="fw-bold text-primary">{{ $plan->memberships_count ?? 0 }} usuarios</div>
+                            <div class="fw-bold text-primary">
+                                @if(isset($plan->memberships_count))
+                                    {{ $plan->memberships_count }} usuarios
+                                @else
+                                    {{ $plan->memberships()->count() }} usuarios
+                                @endif
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">

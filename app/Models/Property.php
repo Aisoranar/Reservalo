@@ -22,6 +22,7 @@ class Property extends Model
         'capacity',
         'type',
         'is_active',
+        'owner_id',
         'city_id',
         'amenities',
         'features',
@@ -89,9 +90,9 @@ class Property extends Model
         return $this->hasMany(Favorite::class);
     }
 
-    public function user(): BelongsTo
+    public function owner(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     public function nightlyPrices(): HasMany

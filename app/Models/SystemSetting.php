@@ -174,7 +174,20 @@ class SystemSetting extends Model
             'default_currency',
             'timezone',
             'date_format',
-            'time_format'
+            'time_format',
+            'contact_email',
+            'contact_phone',
+            'site_address',
+            'maintenance_message',
+            'membership_notification_days',
+            'membership_grace_period',
+            'max_trial_periods',
+            'auto_renewal_enabled',
+            'membership_required',
+            'email_notifications_enabled',
+            'push_notifications_enabled',
+            'admin_notifications_enabled',
+            'user_notifications_enabled'
         ]);
     }
 
@@ -195,7 +208,20 @@ class SystemSetting extends Model
             'default_currency' => ['COP', 'string', 'Moneda por defecto'],
             'timezone' => ['America/Bogota', 'string', 'Zona horaria'],
             'date_format' => ['d/m/Y', 'string', 'Formato de fecha'],
-            'time_format' => ['H:i', 'string', 'Formato de hora']
+            'time_format' => ['H:i', 'string', 'Formato de hora'],
+            'contact_email' => ['', 'string', 'Email de contacto'],
+            'contact_phone' => ['', 'string', 'Teléfono de contacto'],
+            'site_address' => ['', 'string', 'Dirección del sitio'],
+            'maintenance_message' => ['El sistema está en mantenimiento. Volveremos pronto.', 'string', 'Mensaje de mantenimiento'],
+            'membership_notification_days' => [7, 'integer', 'Días de notificación de membresías'],
+            'membership_grace_period' => [3, 'integer', 'Período de gracia de membresías'],
+            'max_trial_periods' => [1, 'integer', 'Máximo períodos de prueba'],
+            'auto_renewal_enabled' => [false, 'boolean', 'Renovación automática habilitada'],
+            'membership_required' => [false, 'boolean', 'Membresía requerida'],
+            'email_notifications_enabled' => [true, 'boolean', 'Notificaciones por email habilitadas'],
+            'push_notifications_enabled' => [false, 'boolean', 'Notificaciones push habilitadas'],
+            'admin_notifications_enabled' => [true, 'boolean', 'Notificaciones para administradores'],
+            'user_notifications_enabled' => [true, 'boolean', 'Notificaciones para usuarios']
         ];
 
         foreach ($defaults as $key => [$value, $type, $description]) {

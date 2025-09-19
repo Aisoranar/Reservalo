@@ -17,6 +17,10 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+            \App\Listeners\LinkGuestReservations::class,
+        ],
+        \App\Events\ReservationCreated::class => [
+            \App\Listeners\SendReservationNotification::class,
         ],
     ];
 
