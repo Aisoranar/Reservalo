@@ -60,7 +60,7 @@
                                         <i class="far fa-heart me-1"></i>Favorito
                                     </button>
                                 @endauth
-                                <button class="btn btn-primary btn-sm">
+                                <button class="btn btn-success btn-sm fw-bold shadow-sm" onclick="shareProperty()" title="Compartir esta propiedad">
                                     <i class="fas fa-share me-1"></i>Compartir
                                 </button>
                             </div>
@@ -488,11 +488,25 @@
             @auth
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body text-center p-4">
-                        <h5 class="text-primary mb-3">
+                        <h5 class="text-primary mb-3" id="reservationTitle">
                                 <i class="fas fa-calendar-check me-2"></i>
                             ¿Listo para reservar?
                         </h5>
-                        <p class="text-muted mb-4">Selecciona las fechas en el calendario y completa tu reserva</p>
+                        <p class="text-muted mb-4" id="reservationSubtitle">Selecciona las fechas en el calendario y completa tu reserva</p>
+                        
+                        <!-- Precio dinámico -->
+                        <div id="dynamicPrice" class="alert alert-success mb-4" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong id="dynamicNights">0 noches</strong>
+                                    <div class="small text-muted" id="dynamicDates">Selecciona fechas</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="h4 mb-0 text-success" id="dynamicTotalPrice">$0</div>
+                                    <div class="small text-muted">Total</div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <button type="button" class="btn btn-success btn-lg w-100 fw-bold shadow-lg" id="reserveBtn" disabled 
                                 style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
@@ -516,14 +530,52 @@
                         <p class="text-white-50 mb-4">Necesitas una cuenta para hacer reservas</p>
                         <!-- Información de precio seleccionado -->
                         <div id="selectedPriceInfo" class="alert alert-info mb-3" style="display: none;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong id="selectedNights">0 noches</strong>
-                                    <div class="small text-muted" id="selectedDates">Selecciona fechas</div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="fw-bold mb-3">
+                                        <i class="fas fa-calculator me-2"></i>El precio:
+                                    </h6>
                                 </div>
-                                <div class="text-end">
-                                    <div class="h5 mb-0 text-primary" id="selectedTotalPrice">$0</div>
-                                    <div class="small text-muted">Precio total</div>
+                            </div>
+                            
+                            <!-- Fechas seleccionadas -->
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="small text-muted">Check-in</div>
+                                        <div class="fw-bold" id="selectedCheckIn">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <div class="small text-muted">Check-out</div>
+                                        <div class="fw-bold" id="selectedCheckOut">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Desglose de precio -->
+                            <div class="price-breakdown">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted">Precio por noche:</span>
+                                    <span class="small" id="selectedPricePerNight">$0</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted">Noches:</span>
+                                    <span class="small" id="selectedNights">0</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">Total:</span>
+                                    <span class="h5 mb-0 text-primary" id="selectedTotalPrice">$0</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Información adicional -->
+                            <div class="mt-3">
+                                <div class="small text-muted text-center">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Precio calculado automáticamente
                                 </div>
                             </div>
                         </div>
@@ -831,6 +883,86 @@
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* Estilos para el desglose de precio */
+.price-breakdown {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.price-breakdown hr {
+    border-color: rgba(255, 255, 255, 0.3);
+    margin: 8px 0;
+}
+
+#selectedPriceInfo {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid #90caf9;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#selectedPriceInfo h6 {
+    color: #1976d2;
+    margin-bottom: 15px;
+}
+
+#selectedCheckIn, #selectedCheckOut {
+    color: #1976d2;
+    font-size: 0.9rem;
+}
+
+#selectedPricePerNight, #selectedNights {
+    color: #424242;
+    font-weight: 500;
+}
+
+#selectedTotalPrice {
+    color: #1976d2;
+    font-weight: 700;
+}
+
+/* Estilos para la sección dinámica de precio */
+#dynamicPrice {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 2px solid #28a745;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: slideInDown 0.3s ease-out;
+    margin: 15px 0;
+    padding: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#dynamicNights {
+    color: #155724;
+    font-size: 1.1rem;
+}
+
+#dynamicDates {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+#dynamicTotalPrice {
+    color: #155724;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Gradientes personalizados */
@@ -1371,7 +1503,7 @@
 #reserveBtn:disabled:hover {
     transform: none !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-}
+ }
 </style>
 
 <!-- JavaScript -->
@@ -1440,6 +1572,188 @@ document.addEventListener('DOMContentLoaded', function() {
     // Llamar a la configuración de navegación
     setupCalendarNavigation();
     
+    // Calcular total
+    function calculateTotal() {
+        console.log('=== CALCULATE TOTAL EJECUTADO ===');
+        console.log('Función calculateTotal llamada');
+        
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        
+        console.log('Start date input value:', startDateInput ? startDateInput.value : 'NO ENCONTRADO');
+        console.log('End date input value:', endDateInput ? endDateInput.value : 'NO ENCONTRADO');
+        
+        if (!startDateInput || !endDateInput) {
+            console.error('No se encontraron los inputs de fecha');
+            return;
+        }
+        
+        // Crear fechas considerando la zona horaria local
+        const startDate = createLocalDate(startDateInput.value);
+        const endDate = createLocalDate(endDateInput.value);
+        
+        console.log('Start date:', startDate);
+        console.log('End date:', endDate);
+        
+        // Validar que las fechas sean futuras considerando la hora actual
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        console.log('Today (local):', today);
+        console.log('Start date (local):', startDate);
+        console.log('Comparison - startDate >= today:', startDate >= today);
+        
+        // Si es hoy, verificar que sea después de la hora actual
+        if (startDate.getTime() === today.getTime()) {
+            const currentHour = now.getHours();
+            
+            // Si es muy tarde en el día (después de las 22:00), no permitir reservas para hoy
+            if (currentHour >= 22) {
+                showAvailabilityMessage('Es muy tarde para reservar hoy. Por favor selecciona mañana o una fecha futura.', 'danger');
+                resetPriceFields();
+                return;
+            }
+        }
+        
+        if (startDate < today) {
+            showAvailabilityMessage('La fecha de inicio debe ser hoy o posterior', 'danger');
+            resetPriceFields();
+            return;
+        }
+        
+        if (endDate <= startDate) {
+            showAvailabilityMessage('La fecha de salida debe ser posterior a la fecha de llegada', 'danger');
+            resetPriceFields();
+            return;
+        }
+        
+        if (startDate && endDate && startDate <= endDate) {
+             let nights = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+             
+             // Si es el mismo día, contar como 1 noche
+             if (nights === 0) {
+                 nights = 1;
+             }
+             
+             console.log('Noches calculadas:', nights);
+             
+            // Mostrar inmediatamente el número de noches (solo si el elemento existe)
+            const nightsEl = document.getElementById('nights');
+            if (nightsEl) {
+                nightsEl.value = nights + ' noche(s)';
+            }
+            
+            // Obtener precio base por noche desde la página
+            const basePricePerNight = {{ $property->price }};
+            console.log('Precio base por noche:', basePricePerNight);
+            
+            // Mostrar precio por noche
+            const avgNightPriceEl = document.getElementById('avg-night-price');
+            if (avgNightPriceEl) {
+                avgNightPriceEl.textContent = '$' + basePricePerNight.toLocaleString();
+            }
+            
+            // Mostrar el contenedor de precio por noche
+            const pricePerNightEl = document.getElementById('price-per-night');
+            if (pricePerNightEl) {
+                pricePerNightEl.style.display = 'block';
+            }
+            
+            // Calcular precio total básico
+            const totalPrice = nights * basePricePerNight;
+            const totalPriceEl = document.getElementById('total_price');
+            if (totalPriceEl) {
+                totalPriceEl.value = '$' + totalPrice.toLocaleString();
+            }
+            
+            // Habilitar botón (solo si existe)
+            const submitBtnEl = document.getElementById('submitBtn');
+            if (submitBtnEl) {
+                submitBtnEl.disabled = false;
+                submitBtnEl.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
+            }
+            
+            console.log('Precio total calculado:', totalPrice);
+            console.log('Botón habilitado');
+            
+            // Mostrar información de precio para usuarios no autenticados
+            if (!document.getElementById('submitBtn')) {
+                updatePriceInfoForGuests(nights, totalPrice, selectedStartDate, selectedEndDate);
+            } else {
+                // Para usuarios autenticados, la sección dinámica ya se actualiza en updateReservationForm
+                console.log('Usuario autenticado - sección dinámica de precio ya actualizada');
+            }
+            
+            // Intentar usar el servicio de precios para calcular el total con descuentos
+            console.log('Intentando llamar a la API de precios...');
+            fetch('/api/properties/{{ $property->id }}/calculate-price', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    property_id: {{ $property->id }},
+                    check_in: document.getElementById('start_date').value,
+                    check_out: document.getElementById('end_date').value
+                })
+            })
+            .then(response => {
+                console.log('Respuesta de la API recibida:', response);
+                console.log('Status:', response.status);
+                console.log('Status Text:', response.statusText);
+                console.log('Headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response.text().then(text => {
+                    console.log('Respuesta como texto:', text);
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Error al parsear JSON:', e);
+                        console.error('Texto recibido:', text);
+                        throw new Error('La respuesta no es JSON válido');
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Datos parseados de la API:', data);
+                if (data.success) {
+                    const totalPriceEl = document.getElementById('total_price');
+                    if (totalPriceEl) {
+                        totalPriceEl.value = '$' + data.data.total_price.toLocaleString();
+                    }
+                    
+                    // Mostrar desglose de precios
+                    showPriceBreakdown(data.data);
+                    
+                    // Mostrar descuentos aplicados si los hay
+                    if (data.data.applied_discounts && data.data.applied_discounts.length > 0) {
+                        showDiscountsInfo(data.data.applied_discounts);
+                    }
+                    
+                    // Actualizar precio dinámico en el header
+                    updateDynamicPrice(data.data);
+                    
+                    // Mostrar descuentos disponibles
+                    showAvailableDiscounts(data.data);
+                }
+            })
+            .catch(error => {
+                console.error('Error detallado al calcular precio con API:', error);
+                console.error('Tipo de error:', error.constructor.name);
+                console.error('Mensaje de error:', error.message);
+                // Ya tenemos el precio básico calculado, no es necesario hacer nada más
+            });
+        } else {
+            console.log('Fechas inválidas, reseteando campos');
+            resetPriceFields();
+        }
+    }
+    
     // Actualizar selección visual del calendario
     function updateCalendarSelection() {
         // Limpiar selecciones anteriores
@@ -1486,6 +1800,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Función para actualizar información de precio para usuarios no autenticados
+    function updatePriceInfoForGuests(nights, totalPrice, startDate, endDate) {
+        const priceInfo = document.getElementById('selectedPriceInfo');
+        const selectedNights = document.getElementById('selectedNights');
+        const selectedCheckIn = document.getElementById('selectedCheckIn');
+        const selectedCheckOut = document.getElementById('selectedCheckOut');
+        const selectedPricePerNight = document.getElementById('selectedPricePerNight');
+        const selectedTotalPrice = document.getElementById('selectedTotalPrice');
+        
+        console.log('=== UPDATE PRICE INFO FOR GUESTS ===');
+        console.log('priceInfo found:', !!priceInfo);
+        console.log('selectedNights found:', !!selectedNights);
+        console.log('selectedCheckIn found:', !!selectedCheckIn);
+        console.log('selectedCheckOut found:', !!selectedCheckOut);
+        console.log('selectedPricePerNight found:', !!selectedPricePerNight);
+        console.log('selectedTotalPrice found:', !!selectedTotalPrice);
+        
+        if (priceInfo && selectedNights && selectedCheckIn && selectedCheckOut && selectedPricePerNight && selectedTotalPrice) {
+            // Calcular precio por noche
+            const pricePerNight = Math.round(totalPrice / nights);
+            
+            // Actualizar elementos
+            selectedNights.textContent = `${nights} noche${nights !== 1 ? 's' : ''}`;
+            selectedCheckIn.textContent = startDate.toLocaleDateString('es-ES', { 
+                weekday: 'short', 
+                day: 'numeric', 
+                month: 'short' 
+            });
+            selectedCheckOut.textContent = endDate.toLocaleDateString('es-ES', { 
+                weekday: 'short', 
+                day: 'numeric', 
+                month: 'short' 
+            });
+            selectedPricePerNight.textContent = `$${pricePerNight.toLocaleString()}`;
+            selectedTotalPrice.textContent = `$${totalPrice.toLocaleString()}`;
+            
+            // Mostrar la sección
+            priceInfo.style.display = 'block';
+            
+            console.log('Precio mostrado:', `$${totalPrice.toLocaleString()}`);
+            
+            // Guardar datos en localStorage para después del login
+            localStorage.setItem('reservationData', JSON.stringify({
+                property_id: {{ $property->id }},
+                start_date: formatDateToLocalString(startDate),
+                end_date: formatDateToLocalString(endDate),
+                nights: nights,
+                total_price: totalPrice,
+                property_name: '{{ $property->name }}'
+            }));
+        } else {
+            console.error('No se encontraron todos los elementos necesarios para mostrar el precio');
+        }
+    }
+    
+    // Limpiar selección
+    function clearSelection() {
+        selectedStartDate = null;
+        selectedEndDate = null;
+        isSelectingEndDate = false;
+        
+        // Limpiar visualización
+        document.querySelectorAll('.calendar-day.selected').forEach(day => {
+            day.classList.remove('selected');
+        });
+        
+        // Limpiar inputs
+        updateDateInputs();
+        hideSelectionStatus();
+        
+        // Limpiar formulario de reserva
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+        
+        if (startDateInput) startDateInput.value = '';
+        if (endDateInput) endDateInput.value = '';
+        
+        // Deshabilitar botón de reserva
+        const reserveBtn = document.getElementById('reserveBtn');
+        if (reserveBtn) {
+            reserveBtn.disabled = true;
+            reserveBtn.classList.remove('btn-primary');
+            reserveBtn.classList.add('btn-secondary');
+        }
+        
+        // Resetear campos de precio
+        resetPriceFields();
+        
+        // Limpiar información de precio para usuarios no autenticados
+        clearPriceInfoForGuests();
+    }
+    
     // Actualizar formulario de reserva
     function updateReservationForm() {
         if (selectedStartDate && selectedEndDate) {
@@ -1506,8 +1912,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 reserveBtn.classList.add('btn-primary');
             }
             
-            // Calcular total si existe la función
-            if (typeof calculateTotal === 'function') {
+            // Actualizar sección dinámica de precio
+            updateDynamicPriceSection();
+            
+            // Calcular total si existe la función (solo para usuarios no autenticados)
+            if (typeof calculateTotal === 'function' && !document.getElementById('reserveBtn')) {
                 calculateTotal();
             }
         } else {
@@ -1518,6 +1927,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 reserveBtn.classList.remove('btn-primary');
                 reserveBtn.classList.add('btn-secondary');
             }
+            
+            // Ocultar sección dinámica de precio
+            hideDynamicPriceSection();
+        }
+    }
+    
+    // Actualizar sección dinámica de precio
+    function updateDynamicPriceSection() {
+        console.log('=== UPDATE DYNAMIC PRICE SECTION ===');
+        console.log('selectedStartDate:', selectedStartDate);
+        console.log('selectedEndDate:', selectedEndDate);
+        
+        if (selectedStartDate && selectedEndDate) {
+            // Calcular noches
+            const nights = Math.ceil((selectedEndDate - selectedStartDate) / (1000 * 60 * 60 * 24));
+            const pricePerNight = {{ $property->price }};
+            const totalPrice = nights * pricePerNight;
+            
+            console.log('Noches calculadas:', nights);
+            console.log('Precio por noche:', pricePerNight);
+            console.log('Precio total:', totalPrice);
+            
+            // Actualizar elementos
+            const dynamicPrice = document.getElementById('dynamicPrice');
+            const dynamicNights = document.getElementById('dynamicNights');
+            const dynamicDates = document.getElementById('dynamicDates');
+            const dynamicTotalPrice = document.getElementById('dynamicTotalPrice');
+            
+            console.log('dynamicPrice found:', !!dynamicPrice);
+            console.log('dynamicNights found:', !!dynamicNights);
+            console.log('dynamicDates found:', !!dynamicDates);
+            console.log('dynamicTotalPrice found:', !!dynamicTotalPrice);
+            
+            if (dynamicPrice && dynamicNights && dynamicDates && dynamicTotalPrice) {
+                dynamicNights.textContent = `${nights} noche${nights !== 1 ? 's' : ''}`;
+                dynamicDates.textContent = `${selectedStartDate.toLocaleDateString()} - ${selectedEndDate.toLocaleDateString()}`;
+                dynamicTotalPrice.textContent = `$${totalPrice.toLocaleString()}`;
+                dynamicPrice.style.display = 'block';
+                
+                console.log('Sección dinámica de precio actualizada');
+                console.log('Contenido actualizado:', {
+                    nights: dynamicNights.textContent,
+                    dates: dynamicDates.textContent,
+                    total: dynamicTotalPrice.textContent
+                });
+                console.log('Elemento visible:', dynamicPrice.style.display);
+            } else {
+                console.error('No se encontraron todos los elementos de la sección dinámica de precio');
+            }
+        }
+    }
+    
+    // Ocultar sección dinámica de precio
+    function hideDynamicPriceSection() {
+        const dynamicPrice = document.getElementById('dynamicPrice');
+        if (dynamicPrice) {
+            dynamicPrice.style.display = 'none';
         }
     }
     
@@ -2044,30 +2510,6 @@ function formatDateToLocalString(date) {
     return `${year}-${month}-${day}`;
 }
 
-// Función para actualizar información de precio para usuarios no autenticados
-function updatePriceInfoForGuests(nights, totalPrice, startDate, endDate) {
-    const priceInfo = document.getElementById('selectedPriceInfo');
-    const selectedNights = document.getElementById('selectedNights');
-    const selectedDates = document.getElementById('selectedDates');
-    const selectedTotalPrice = document.getElementById('selectedTotalPrice');
-    
-    if (priceInfo && selectedNights && selectedDates && selectedTotalPrice) {
-        selectedNights.textContent = `${nights} noche${nights !== 1 ? 's' : ''}`;
-        selectedDates.textContent = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
-        selectedTotalPrice.textContent = `$${totalPrice.toLocaleString()}`;
-        priceInfo.style.display = 'block';
-        
-        // Guardar datos en localStorage para después del login
-        localStorage.setItem('reservationData', JSON.stringify({
-            property_id: {{ $property->id }},
-            start_date: formatDateToLocalString(startDate),
-            end_date: formatDateToLocalString(endDate),
-            nights: nights,
-            total_price: totalPrice,
-            property_name: '{{ $property->name }}'
-        }));
-    }
-}
 
 // Función para limpiar información de precio
 function clearPriceInfoForGuests() {
@@ -2477,42 +2919,6 @@ function hideSelectionStatus() {
     }
 }
 
-// Limpiar selección
-function clearSelection() {
-    selectedStartDate = null;
-    selectedEndDate = null;
-    isSelectingEndDate = false;
-    
-    // Limpiar visualización
-    document.querySelectorAll('.calendar-day.selected').forEach(day => {
-        day.classList.remove('selected');
-    });
-    
-    // Limpiar inputs
-    updateDateInputs();
-    hideSelectionStatus();
-    
-    // Limpiar formulario de reserva
-    const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    
-    if (startDateInput) startDateInput.value = '';
-    if (endDateInput) endDateInput.value = '';
-    
-        // Deshabilitar botón de reserva
-        const reserveBtn = document.getElementById('reserveBtn');
-        if (reserveBtn) {
-            reserveBtn.disabled = true;
-            reserveBtn.classList.remove('btn-primary');
-            reserveBtn.classList.add('btn-secondary');
-    }
-    
-    // Resetear campos de precio
-    resetPriceFields();
-    
-    // Limpiar información de precio para usuarios no autenticados
-    clearPriceInfoForGuests();
-}
 
 
         
@@ -2630,184 +3036,6 @@ function updateDateInputsMin() {
     }
 }
 
-// Calcular total
-function calculateTotal() {
-    console.log('=== CALCULATE TOTAL EJECUTADO ===');
-    console.log('Función calculateTotal llamada');
-    
-    const startDateInput = document.getElementById('start_date');
-    const endDateInput = document.getElementById('end_date');
-    
-    console.log('Start date input value:', startDateInput ? startDateInput.value : 'NO ENCONTRADO');
-    console.log('End date input value:', endDateInput ? endDateInput.value : 'NO ENCONTRADO');
-    
-    if (!startDateInput || !endDateInput) {
-        console.error('No se encontraron los inputs de fecha');
-        return;
-    }
-    
-    // Crear fechas considerando la zona horaria local
-    const startDate = createLocalDate(startDateInput.value);
-    const endDate = createLocalDate(endDateInput.value);
-    
-    console.log('Start date:', startDate);
-    console.log('End date:', endDate);
-    
-    // Validar que las fechas sean futuras considerando la hora actual
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    console.log('Today (local):', today);
-    console.log('Start date (local):', startDate);
-    console.log('Comparison - startDate >= today:', startDate >= today);
-    
-    // Si es hoy, verificar que sea después de la hora actual
-    if (startDate.getTime() === today.getTime()) {
-        const currentHour = now.getHours();
-        
-        // Si es muy tarde en el día (después de las 22:00), no permitir reservas para hoy
-        if (currentHour >= 22) {
-            showAvailabilityMessage('Es muy tarde para reservar hoy. Por favor selecciona mañana o una fecha futura.', 'danger');
-            resetPriceFields();
-            return;
-        }
-    }
-    
-    if (startDate < today) {
-        showAvailabilityMessage('La fecha de inicio debe ser hoy o posterior', 'danger');
-        resetPriceFields();
-        return;
-    }
-    
-    if (endDate <= startDate) {
-        showAvailabilityMessage('La fecha de salida debe ser posterior a la fecha de llegada', 'danger');
-        resetPriceFields();
-        return;
-    }
-    
-    if (startDate && endDate && startDate <= endDate) {
-         let nights = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-         
-         // Si es el mismo día, contar como 1 noche
-         if (nights === 0) {
-             nights = 1;
-         }
-         
-         console.log('Noches calculadas:', nights);
-         
-        // Mostrar inmediatamente el número de noches (solo si el elemento existe)
-        const nightsEl = document.getElementById('nights');
-        if (nightsEl) {
-            nightsEl.value = nights + ' noche(s)';
-        }
-        
-        // Obtener precio base por noche desde la página
-        const basePricePerNight = {{ $effectivePrice }};
-        console.log('Precio base por noche:', basePricePerNight);
-        
-        // Mostrar precio por noche
-        const avgNightPriceEl = document.getElementById('avg-night-price');
-        if (avgNightPriceEl) {
-            avgNightPriceEl.textContent = '$' + basePricePerNight.toLocaleString();
-        }
-        
-        // Mostrar el contenedor de precio por noche
-        const pricePerNightEl = document.getElementById('price-per-night');
-        if (pricePerNightEl) {
-            pricePerNightEl.style.display = 'block';
-        }
-        
-        // Calcular precio total básico
-        const totalPrice = nights * basePricePerNight;
-        const totalPriceEl = document.getElementById('total_price');
-        if (totalPriceEl) {
-            totalPriceEl.value = '$' + totalPrice.toLocaleString();
-        }
-        
-        // Habilitar botón (solo si existe)
-        const submitBtnEl = document.getElementById('submitBtn');
-        if (submitBtnEl) {
-            submitBtnEl.disabled = false;
-            submitBtnEl.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Enviar solicitud';
-        }
-        
-        console.log('Precio total calculado:', totalPrice);
-        console.log('Botón habilitado');
-        
-        // Mostrar información de precio para usuarios no autenticados
-        if (!document.getElementById('submitBtn')) {
-            updatePriceInfoForGuests(nights, totalPrice, selectedStartDate, selectedEndDate);
-        }
-        
-        // Intentar usar el servicio de precios para calcular el total con descuentos
-        console.log('Intentando llamar a la API de precios...');
-        fetch('/api/properties/{{ $property->id }}/calculate-price', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                property_id: {{ $property->id }},
-                check_in: document.getElementById('start_date').value,
-                check_out: document.getElementById('end_date').value
-            })
-        })
-        .then(response => {
-            console.log('Respuesta de la API recibida:', response);
-            console.log('Status:', response.status);
-            console.log('Status Text:', response.statusText);
-            console.log('Headers:', response.headers);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            return response.text().then(text => {
-                console.log('Respuesta como texto:', text);
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    console.error('Error al parsear JSON:', e);
-                    console.error('Texto recibido:', text);
-                    throw new Error('La respuesta no es JSON válido');
-                }
-            });
-        })
-        .then(data => {
-            console.log('Datos parseados de la API:', data);
-            if (data.success) {
-                const totalPriceEl = document.getElementById('total_price');
-                if (totalPriceEl) {
-                    totalPriceEl.value = '$' + data.data.total_price.toLocaleString();
-                }
-                
-                // Mostrar desglose de precios
-                showPriceBreakdown(data.data);
-                
-                // Mostrar descuentos aplicados si los hay
-                if (data.data.applied_discounts && data.data.applied_discounts.length > 0) {
-                    showDiscountsInfo(data.data.applied_discounts);
-                }
-                
-                // Actualizar precio dinámico en el header
-                updateDynamicPrice(data.data);
-                
-                // Mostrar descuentos disponibles
-                showAvailableDiscounts(data.data);
-            }
-        })
-        .catch(error => {
-            console.error('Error detallado al calcular precio con API:', error);
-            console.error('Tipo de error:', error.constructor.name);
-            console.error('Mensaje de error:', error.message);
-            // Ya tenemos el precio básico calculado, no es necesario hacer nada más
-        });
-    } else {
-        console.log('Fechas inválidas, reseteando campos');
-        resetPriceFields();
-    }
-}
 
 // Función de fallback para cálculo básico
 function fallbackCalculation(nights) {
