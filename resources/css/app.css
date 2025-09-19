@@ -1,3 +1,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilos personalizados para el menú de navegación */
+.navbar-nav .nav-link[href*="email-templates"] {
+    color: #17a2b8 !important;
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link[href*="email-templates"]:hover {
+    color: #138496 !important;
+    background-color: rgba(23, 162, 184, 0.1);
+    border-radius: 4px;
+}
+
+.navbar-nav .nav-link[href*="email-templates"] i {
+    color: #17a2b8 !important;
+}
+
+.navbar-nav .nav-link[href*="email-templates"]:hover i {
+    color: #138496 !important;
+}
+
+/* Estilo para el estado activo */
+.navbar-nav .nav-link[href*="email-templates"].active {
+    color: #138496 !important;
+    background-color: rgba(23, 162, 184, 0.2);
+    border-radius: 4px;
+}
+
+.navbar-nav .nav-link[href*="email-templates"].active i {
+    color: #138496 !important;
+}

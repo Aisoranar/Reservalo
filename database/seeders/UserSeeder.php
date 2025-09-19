@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
         $superAdmin = User::create([
             'name' => 'Super Administrador',
             'email' => 'superadmin@reservalo.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('c'),
             'phone' => '+57 300 123 4567',
             'whatsapp' => '+57 300 123 4567',
             'role' => 'superadmin',

@@ -105,6 +105,12 @@ class AuditLogging
             return 'toggled';
         } elseif (str_contains($routeName, 'reset')) {
             return 'reset';
+        } elseif (str_contains($routeName, 'pricing.activate')) {
+            return 'global_pricing_activated';
+        } elseif (str_contains($routeName, 'pricing.deactivate')) {
+            return 'global_pricing_deactivated';
+        } elseif (str_contains($routeName, 'pricing.destroy')) {
+            return 'global_pricing_deleted';
         }
 
         return $baseAction;
@@ -123,6 +129,7 @@ class AuditLogging
         if (str_contains($routeName, 'settings')) return 'SystemSetting';
         if (str_contains($routeName, 'properties')) return 'Property';
         if (str_contains($routeName, 'reservations')) return 'Reservation';
+        if (str_contains($routeName, 'pricing')) return 'GlobalPricing';
 
         return null;
     }

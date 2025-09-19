@@ -54,6 +54,12 @@ Route::middleware('auth')->group(function () {
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 
+    // Rutas para cambio de contraseña temporal
+    Route::get('change-password', [App\Http\Controllers\ChangePasswordController::class, 'show'])
+                ->name('password.change');
+    Route::post('change-password', [App\Http\Controllers\ChangePasswordController::class, 'update'])
+                ->name('password.change.update');
+
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
                 ->name('logout');
 });

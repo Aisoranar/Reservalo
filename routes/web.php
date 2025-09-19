@@ -44,7 +44,7 @@ Route::get('/api/properties/{property}/quick-view', [PropertyController::class, 
 
 
 // Rutas de autenticación (se generarán automáticamente con Breeze)
-Route::middleware(['auth', 'active.user'])->group(function () {
+Route::middleware(['auth', 'active.user', 'must.change.password'])->group(function () {
     // Dashboard del usuario
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -128,6 +128,7 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::get('/reservations/{reservation}', [SuperAdminController::class, 'showReservation'])->name('reservations.show');
         Route::post('/reservations/{reservation}/approve', [SuperAdminController::class, 'approveReservation'])->name('reservations.approve');
         Route::post('/reservations/{reservation}/reject', [SuperAdminController::class, 'rejectReservation'])->name('reservations.reject');
+        Route::post('/reservations/{reservation}/delete', [SuperAdminController::class, 'deleteReservation'])->name('reservations.delete');
         Route::post('/reservations/{reservation}/send-email', [SuperAdminController::class, 'sendEmail'])->name('reservations.send-email');
         
         // Notificaciones
@@ -158,6 +159,17 @@ Route::middleware(['auth', 'active.user'])->group(function () {
         Route::get('/audit-logs/{log}', [SuperAdminController::class, 'showAuditLog'])->name('audit-logs.show');
         Route::get('/audit-logs/export', [SuperAdminController::class, 'exportAuditLogs'])->name('audit-logs.export');
         Route::post('/audit-logs/cleanup', [SuperAdminController::class, 'cleanupAuditLogs'])->name('audit-logs.cleanup');
+        
+        // Precios globales
+        Route::get('/pricing', [App\Http\Controllers\GlobalPricingController::class, 'index'])->name('pricing');
+        Route::get('/pricing/create', [App\Http\Controllers\GlobalPricingController::class, 'create'])->name('pricing.create');
+        Route::post('/pricing', [App\Http\Controllers\GlobalPricingController::class, 'store'])->name('pricing.store');
+        Route::get('/pricing/{pricing}/edit', [App\Http\Controllers\GlobalPricingController::class, 'edit'])->name('pricing.edit');
+        Route::put('/pricing/{pricing}', [App\Http\Controllers\GlobalPricingController::class, 'update'])->name('pricing.update');
+        Route::post('/pricing/{pricing}/activate', [App\Http\Controllers\GlobalPricingController::class, 'activate'])->name('pricing.activate');
+        Route::post('/pricing/{pricing}/deactivate', [App\Http\Controllers\GlobalPricingController::class, 'deactivate'])->name('pricing.deactivate');
+        Route::delete('/pricing/{pricing}', [App\Http\Controllers\GlobalPricingController::class, 'destroy'])->name('pricing.destroy');
+        Route::get('/api/pricing/active', [App\Http\Controllers\GlobalPricingController::class, 'getActivePricing'])->name('api.pricing.active');
     });
 
     // Panel de administración

@@ -225,16 +225,84 @@
 
                             <!-- Precio Total -->
                             <div class="col-md-3 mb-3">
+                                <label for="pricing_method" class="form-label">Método de Precio <span class="text-danger">*</span></label>
+                                <select class="form-select @error('pricing_method') is-invalid @enderror" 
+                                        id="pricing_method" name="pricing_method" required>
+                                    <option value="">Seleccionar método</option>
+                                    <option value="global" {{ old('pricing_method') === 'global' ? 'selected' : '' }}>
+                                        Usar Precio Global
+                                    </option>
+                                    <option value="manual" {{ old('pricing_method') === 'manual' ? 'selected' : '' }}>
+                                        Precio Manual
+                                    </option>
+                                </select>
+                                @error('pricing_method')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Selector de Precio Global -->
+                        <div class="row mb-3" id="global_pricing_section" style="display: none;">
+                            <div class="col-md-6">
+                                <label for="global_pricing_id" class="form-label">Precio Global</label>
+                                <select class="form-select @error('global_pricing_id') is-invalid @enderror" 
+                                        id="global_pricing_id" name="global_pricing_id">
+                                    <option value="">Cargando precios...</option>
+                                </select>
+                                @error('global_pricing_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Precio por {{ old('price_type', 'día') }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="global_price_per_unit" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Precio Manual -->
+                        <div class="row mb-3" id="manual_pricing_section" style="display: none;">
+                            <div class="col-md-6">
                                 <label for="total_price" class="form-label">Precio Total <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" class="form-control @error('total_price') is-invalid @enderror" 
                                            id="total_price" name="total_price" value="{{ old('total_price') }}" 
-                                           step="0.01" min="0" required>
+                                           step="0.01" min="0">
                                 </div>
                                 @error('total_price')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Noches</label>
+                                <input type="text" class="form-control" id="manual_nights" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Precio Total Final -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-2">
+                                            <i class="fas fa-calculator me-2"></i>Resumen del Precio
+                                        </h6>
+                                        <div id="price_summary">
+                                            <p class="text-muted mb-0">Selecciona un método de precio para ver el resumen</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del Precio -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div id="price-info"></div>
                             </div>
                         </div>
 
@@ -290,6 +358,17 @@
                                     <label class="form-check-label" for="send_email">
                                         <i class="fas fa-envelope me-1"></i>Enviar correo de notificación al cliente
                                     </label>
+                                </div>
+                                
+                                <!-- Indicador de estado del correo -->
+                                <div id="email-status" class="mt-2" style="display: none;">
+                                    <div class="alert alert-info d-flex align-items-center" role="alert" id="email-status-alert">
+                                        <i class="fas fa-info-circle me-2" id="email-status-icon"></i>
+                                        <div>
+                                            <strong>Estado del correo:</strong>
+                                            <span id="email-status-text">Preparando envío...</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -691,6 +770,51 @@
         font-size: 1rem;
         padding: 10px 20px;
     }
+
+    /* Indicadores de estado del correo */
+    #email-status {
+        transition: all 0.3s ease;
+    }
+
+    #email-status .alert {
+        border-radius: 8px;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 0;
+    }
+
+    #email-status .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-left: 4px solid #17a2b8;
+    }
+
+    #email-status .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border-left: 4px solid #ffc107;
+    }
+
+    #email-status .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+
+    #email-status .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+    }
+
+    #email-status .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 }
 </style>
 @endpush
@@ -871,27 +995,170 @@ document.addEventListener('DOMContentLoaded', function() {
     startDateInput.addEventListener('change', checkDateAvailability);
     endDateInput.addEventListener('change', checkDateAvailability);
 
-    // Calcular automáticamente el precio basado en las fechas y propiedad
+    // Variables para precios globales
+    let globalPricings = [];
+    let selectedGlobalPricing = null;
+
+    // Cargar precios globales al inicializar
+    function loadGlobalPricings() {
+        fetch('/superadmin/api/pricing/active')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    globalPricings = data.pricings || [data.pricing];
+                    updateGlobalPricingSelect();
+                }
+            })
+            .catch(error => {
+                console.error('Error cargando precios globales:', error);
+            });
+    }
+
+    // Actualizar selector de precios globales
+    function updateGlobalPricingSelect() {
+        const select = document.getElementById('global_pricing_id');
+        if (!select) return;
+
+        select.innerHTML = '<option value="">Seleccionar precio global</option>';
+        
+        globalPricings.forEach(pricing => {
+            const option = document.createElement('option');
+            option.value = pricing.id;
+            option.textContent = `${pricing.name} - $${pricing.final_price.toLocaleString('es-CO')} / ${pricing.price_type === 'nightly' ? 'noche' : 'día'}`;
+            select.appendChild(option);
+        });
+    }
+
+    // Calcular precio basado en el método seleccionado
     function calculatePrice() {
         const startDate = new Date(startDateInput.value);
         const endDate = new Date(endDateInput.value);
         const propertyId = propertySelect.value;
         const guests = parseInt(guestsInput.value) || 1;
+        const pricingMethod = document.getElementById('pricing_method').value;
 
         if (startDate && endDate && propertyId && startDate < endDate) {
             const nights = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
             
-            // Aquí podrías hacer una llamada AJAX para obtener el precio por noche
-            // Por ahora, usaremos un cálculo básico
-            const basePricePerNight = 100000; // Precio base por noche
-            const calculatedPrice = nights * basePricePerNight * guests;
-            
-            if (calculatedPrice > 0) {
-                totalPriceInput.value = calculatedPrice;
+            if (pricingMethod === 'global' && selectedGlobalPricing) {
+                calculateGlobalPrice(nights, selectedGlobalPricing);
+            } else if (pricingMethod === 'manual') {
+                calculateManualPrice(nights);
             }
+            
+            updatePriceSummary(nights);
         }
     }
 
+    // Calcular precio usando precio global
+    function calculateGlobalPrice(nights, pricing) {
+        const basePrice = pricing.final_price;
+        const totalPrice = nights * basePrice;
+        
+        // Actualizar campos
+        document.getElementById('global_price_per_unit').value = basePrice.toLocaleString('es-CO');
+        document.getElementById('total_price').value = totalPrice;
+        
+        // Actualizar información del precio
+        updatePriceInfo(pricing, nights, totalPrice);
+    }
+
+    // Calcular precio manual
+    function calculateManualPrice(nights) {
+        const manualNightsInput = document.getElementById('manual_nights');
+        if (manualNightsInput) {
+            manualNightsInput.value = nights;
+        }
+    }
+
+    // Actualizar información del precio en la interfaz
+    function updatePriceInfo(pricing, nights, totalPrice) {
+        const priceInfo = document.getElementById('price-info');
+        if (priceInfo) {
+            priceInfo.innerHTML = `
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Información del Precio</h6>
+                    <p class="mb-1"><strong>Precio Global:</strong> ${pricing.name}</p>
+                    <p class="mb-1"><strong>Precio por ${pricing.price_type === 'nightly' ? 'noche' : 'día'}:</strong> $${pricing.final_price.toLocaleString('es-CO')}</p>
+                    <p class="mb-1"><strong>Noches:</strong> ${nights}</p>
+                    <p class="mb-0"><strong>Total:</strong> $${totalPrice.toLocaleString('es-CO')}</p>
+                </div>
+            `;
+        }
+    }
+
+    // Actualizar resumen del precio
+    function updatePriceSummary(nights) {
+        const summary = document.getElementById('price_summary');
+        const pricingMethod = document.getElementById('pricing_method').value;
+        const totalPrice = document.getElementById('total_price').value;
+        
+        if (!summary) return;
+        
+        if (pricingMethod === 'global' && selectedGlobalPricing) {
+            const totalPriceNum = parseFloat(totalPrice) || 0;
+            summary.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Método:</strong> Precio Global</p>
+                        <p class="mb-1"><strong>Precio seleccionado:</strong> ${selectedGlobalPricing.name}</p>
+                        <p class="mb-1"><strong>Precio por ${selectedGlobalPricing.price_type === 'nightly' ? 'noche' : 'día'}:</strong> $${selectedGlobalPricing.final_price.toLocaleString('es-CO')}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Noches:</strong> ${nights}</p>
+                        <p class="mb-1"><strong>Total calculado:</strong> $${totalPriceNum.toLocaleString('es-CO')}</p>
+                        <p class="mb-0 text-success"><strong>Precio final:</strong> $${totalPriceNum.toLocaleString('es-CO')}</p>
+                    </div>
+                </div>
+            `;
+        } else if (pricingMethod === 'manual') {
+            const totalPriceNum = parseFloat(totalPrice) || 0;
+            summary.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Método:</strong> Precio Manual</p>
+                        <p class="mb-1"><strong>Noches:</strong> ${nights}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Precio ingresado:</strong> $${totalPriceNum.toLocaleString('es-CO')}</p>
+                        <p class="mb-0 text-success"><strong>Precio final:</strong> $${totalPriceNum.toLocaleString('es-CO')}</p>
+                    </div>
+                </div>
+            `;
+        } else {
+            summary.innerHTML = '<p class="text-muted mb-0">Selecciona un método de precio para ver el resumen</p>';
+        }
+    }
+
+    // Event listeners para el método de precio
+    document.getElementById('pricing_method').addEventListener('change', function() {
+        const method = this.value;
+        const globalSection = document.getElementById('global_pricing_section');
+        const manualSection = document.getElementById('manual_pricing_section');
+        
+        if (method === 'global') {
+            globalSection.style.display = 'block';
+            manualSection.style.display = 'none';
+            loadGlobalPricings();
+        } else if (method === 'manual') {
+            globalSection.style.display = 'none';
+            manualSection.style.display = 'block';
+        } else {
+            globalSection.style.display = 'none';
+            manualSection.style.display = 'none';
+        }
+        
+        calculatePrice();
+    });
+
+    // Event listener para selección de precio global
+    document.getElementById('global_pricing_id').addEventListener('change', function() {
+        const pricingId = this.value;
+        selectedGlobalPricing = globalPricings.find(p => p.id == pricingId);
+        calculatePrice();
+    });
+
+    // Event listeners para cálculo automático
     startDateInput.addEventListener('change', calculatePrice);
     endDateInput.addEventListener('change', calculatePrice);
     propertySelect.addEventListener('change', calculatePrice);
@@ -902,8 +1169,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const startDate = new Date(startDateInput.value);
         const endDate = new Date(endDateInput.value);
         
-        if (startDate && endDate && startDate >= endDate) {
-            endDateInput.setCustomValidity('La fecha de salida debe ser posterior a la fecha de entrada');
+        if (startDate && endDate && startDate > endDate) {
+            endDateInput.setCustomValidity('La fecha de salida no puede ser anterior a la fecha de entrada');
         } else {
             endDateInput.setCustomValidity('');
         }
@@ -919,17 +1186,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Establecer fecha mínima para entrada como hoy (permitir hoy)
     startDateInput.min = todayString;
     
-    // Establecer fecha mínima para salida como mañana (después de seleccionar entrada)
+    // Establecer fecha mínima para salida (puede ser la misma fecha de entrada)
     function updateEndDateMin() {
         if (startDateInput.value) {
             const startDate = new Date(startDateInput.value);
-            const nextDay = new Date(startDate);
-            nextDay.setDate(startDate.getDate() + 1);
-            endDateInput.min = nextDay.toISOString().split('T')[0];
+            // Permitir la misma fecha de entrada y salida
+            endDateInput.min = startDate.toISOString().split('T')[0];
         } else {
-            const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1);
-            endDateInput.min = tomorrow.toISOString().split('T')[0];
+            // Si no hay fecha de entrada, permitir desde hoy
+            endDateInput.min = todayString;
         }
     }
     
@@ -1033,7 +1298,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Verificar si está deshabilitado (fechas pasadas)
-        if (dayDate < today) {
+        // Comparar solo las fechas sin la hora
+        const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        
+        if (dayDateOnly < todayOnly) {
             dayElement.classList.add('disabled');
         }
         
@@ -1078,7 +1347,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const today = new Date();
-        if (dayDate < today) {
+        // Comparar solo las fechas sin la hora
+        const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        
+        if (dayDateOnly < todayOnly) {
             return;
         }
         
@@ -1098,11 +1371,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (selectedStartDate && !selectedEndDate) {
             // Segunda selección: fecha de fin
             if (dayDate.getTime() === selectedStartDate.getTime()) {
-                // Si es la misma fecha, limpiar selección
-                selectedStartDate = null;
-                selectedEndDate = null;
+                // Si es la misma fecha, establecer como fecha de fin (reserva de un día)
+                selectedEndDate = dayDate;
                 isSelectingEndDate = false;
-                console.log('Selección limpiada');
+                console.log('Reserva de un día - Inicio:', selectedStartDate.toLocaleDateString(), 'Fin:', selectedEndDate.toLocaleDateString());
             } else if (dayDate < selectedStartDate) {
                 // Si la fecha es anterior, intercambiar
                 selectedEndDate = selectedStartDate;
@@ -1297,6 +1569,41 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!selectedStartDate || !selectedEndDate) return false;
         return date >= selectedStartDate && date <= selectedEndDate;
     }
+
+    // Manejar el estado del envío de correo
+    const emailCheckbox = document.getElementById('send_email');
+    const emailStatus = document.getElementById('email-status');
+    const emailStatusText = document.getElementById('email-status-text');
+    const emailStatusAlert = document.getElementById('email-status-alert');
+    const emailStatusIcon = document.getElementById('email-status-icon');
+
+    function updateEmailStatus(message, type, icon) {
+        emailStatusText.textContent = message;
+        emailStatusAlert.className = `alert alert-${type} d-flex align-items-center`;
+        emailStatusIcon.className = `fas fa-${icon} me-2`;
+    }
+
+    emailCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            emailStatus.style.display = 'block';
+            updateEmailStatus('Correo se enviará al crear la reserva', 'info', 'info-circle');
+        } else {
+            emailStatus.style.display = 'none';
+        }
+    });
+
+    // Mostrar estado inicial si está marcado
+    if (emailCheckbox.checked) {
+        emailStatus.style.display = 'block';
+        updateEmailStatus('Correo se enviará al crear la reserva', 'info', 'info-circle');
+    }
+
+    // Manejar el envío del formulario
+    document.getElementById('manualReservationForm').addEventListener('submit', function(e) {
+        if (emailCheckbox.checked) {
+            updateEmailStatus('Enviando correo...', 'warning', 'spinner fa-spin');
+        }
+    });
 });
 </script>
 @endpush

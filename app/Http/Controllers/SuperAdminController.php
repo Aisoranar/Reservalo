@@ -1502,14 +1502,28 @@ class SuperAdminController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('check_in', '>=', $request->date_from);
+            $query->whereDate('start_date', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('check_out', '<=', $request->date_to);
+            $query->whereDate('end_date', '<=', $request->date_to);
         }
 
-        $reservations = $query->orderBy('created_at', 'desc')->paginate(15);
+        // Obtener elementos por página del request
+        $perPage = $request->get('per_page', 15);
+        $perPage = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
+
+        // Ordenar por prioridad: pendientes primero (más viejas primero), luego por fecha de creación
+        $reservations = $query->orderByRaw("
+            CASE 
+                WHEN status = 'pending' THEN 0 
+                WHEN status = 'approved' THEN 1 
+                WHEN status = 'rejected' THEN 2 
+                WHEN status = 'cancelled' THEN 3 
+                WHEN status = 'deleted' THEN 4 
+                ELSE 5 
+            END
+        ")->orderBy('created_at', 'asc')->paginate($perPage);
         
         return view('superadmin.reservations.index', compact('reservations'));
     }
@@ -1784,14 +1798,20 @@ class SuperAdminController extends Controller
             'client_type' => 'required|in:registered,guest',
             'property_id' => 'required|exists:properties,id',
             'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'guests' => 'required|integer|min:1|max:20',
+            'pricing_method' => 'required|in:global,manual',
             'total_price' => 'required|numeric|min:0',
             'special_requests' => 'nullable|string|max:1000',
             'admin_notes' => 'nullable|string|max:1000',
             'status' => 'required|in:pending,approved,rejected',
             'send_email' => 'nullable|boolean'
         ];
+
+        // Agregar validación para precio global si se selecciona
+        if ($request->pricing_method === 'global') {
+            $validationRules['global_pricing_id'] = 'required|exists:global_pricings,id';
+        }
 
         // Agregar validaciones específicas según el tipo de cliente
         if ($request->client_type === 'registered') {
@@ -1821,6 +1841,27 @@ class SuperAdminController extends Controller
                 'approved_at' => $request->status === 'approved' ? now() : null,
             ];
 
+            // Agregar información del precio global si se seleccionó
+            if ($request->pricing_method === 'global' && $request->global_pricing_id) {
+                $globalPricing = \App\Models\GlobalPricing::find($request->global_pricing_id);
+                if ($globalPricing) {
+                    $reservationData['pricing_method'] = 'global';
+                    $reservationData['global_pricing_id'] = $globalPricing->id;
+                    $reservationData['pricing_details'] = json_encode([
+                        'global_pricing_name' => $globalPricing->name,
+                        'base_price' => $globalPricing->base_price,
+                        'final_price' => $globalPricing->final_price,
+                        'price_type' => $globalPricing->price_type,
+                        'has_discount' => $globalPricing->has_discount,
+                        'discount_type' => $globalPricing->discount_type,
+                        'discount_percentage' => $globalPricing->discount_percentage,
+                        'discount_amount' => $globalPricing->discount_amount
+                    ]);
+                }
+            } else {
+                $reservationData['pricing_method'] = 'manual';
+            }
+
             // Agregar datos específicos según el tipo de cliente
             if ($request->client_type === 'registered') {
                 // Verificar que user_id esté presente y no sea vacío
@@ -1832,9 +1873,23 @@ class SuperAdminController extends Controller
                 $reservationData['user_id'] = $request->user_id;
                 $reservationData['is_guest_reservation'] = false;
             } else {
-                // Forzar user_id a null para huéspedes
-                $reservationData['user_id'] = null;
-                $reservationData['is_guest_reservation'] = true;
+                // Crear cuenta temporal para cliente no registrado
+                $tempPassword = \Str::random(12); // Contraseña temporal
+                $tempUser = \App\Models\User::create([
+                    'name' => $request->guest_name,
+                    'email' => $request->guest_email,
+                    'phone' => $request->guest_phone,
+                    'password' => \Hash::make($tempPassword),
+                    'role' => 'user',
+                    'account_type' => 'individual',
+                    'is_active' => true,
+                    'email_verified_at' => now(),
+                    'must_change_password' => true, // Flag para obligar cambio de contraseña
+                    'temp_password' => $tempPassword, // Guardar contraseña temporal para el email
+                ]);
+
+                $reservationData['user_id'] = $tempUser->id;
+                $reservationData['is_guest_reservation'] = false; // Ahora es un usuario registrado
                 $reservationData['guest_name'] = $request->guest_name;
                 $reservationData['guest_email'] = $request->guest_email;
                 $reservationData['guest_phone'] = $request->guest_phone;
@@ -1861,6 +1916,10 @@ class SuperAdminController extends Controller
                 'Reserva manual creada para: ' . $reservation->customer_name
             );
 
+            // Variables para el resultado del envío de correo
+            $emailSent = false;
+            $emailError = null;
+
             // Enviar correo si está marcado
             if ($request->has('send_email') && $request->send_email) {
                 try {
@@ -1881,11 +1940,26 @@ class SuperAdminController extends Controller
                         'guest_token' => $reservation->guest_token
                     ];
 
-                    $emailType = $reservation->status === 'approved' ? 'reservation_approved' : 'reservation_created';
+                    // Si se creó una cuenta temporal, agregar información de acceso
+                    if ($request->client_type === 'guest' && isset($tempUser)) {
+                        $emailData['temp_account'] = true;
+                        $emailData['temp_email'] = $tempUser->email;
+                        $emailData['temp_password'] = $tempPassword;
+                        $emailData['login_url'] = route('login');
+                    }
+
+                    // Usar plantilla específica si se creó cuenta temporal
+                    if ($request->client_type === 'guest' && isset($tempUser)) {
+                        $emailType = 'reservation_created_temp_account';
+                    } else {
+                        $emailType = $reservation->status === 'approved' ? 'reservation_approved' : 'reservation_created';
+                    }
                     
                     \Mail::to($reservation->customer_email)->send(
                         new \App\Mail\ReservationNotification($emailType, $emailData)
                     );
+
+                    $emailSent = true;
 
                     // Registrar en auditoría
                     AuditLog::log(
@@ -1893,18 +1967,34 @@ class SuperAdminController extends Controller
                         'Reservation',
                         $reservation->id,
                         auth()->id(),
-                        ['email_type' => $emailType, 'user_email' => $reservation->user->email],
+                        ['email_type' => $emailType, 'user_email' => $reservation->customer_email],
                         [],
                         'Correo enviado automáticamente al crear reserva manual: ' . $reservation->id
                     );
 
                 } catch (\Exception $e) {
+                    $emailError = $e->getMessage();
                     \Log::error('Error enviando correo de reserva manual: ' . $e->getMessage());
                 }
             }
 
+            // Preparar mensaje de éxito con información del correo
+            $successMessage = 'Reserva creada exitosamente';
+            
+            if ($request->has('send_email') && $request->send_email) {
+                if ($emailSent) {
+                    if ($request->client_type === 'guest' && isset($tempUser)) {
+                        $successMessage .= ' y correo con cuenta temporal enviado al cliente';
+                    } else {
+                        $successMessage .= ' y correo enviado al cliente';
+                    }
+                } else {
+                    $successMessage .= ' pero hubo un error enviando el correo: ' . $emailError;
+                }
+            }
+
             return redirect()->route('superadmin.reservations')
-                ->with('success', 'Reserva creada exitosamente' . ($request->has('send_email') && $request->send_email ? ' y correo enviado al cliente' : ''));
+                ->with('success', $successMessage);
 
         } catch (\Exception $e) {
             \Log::error('Error creando reserva manual: ' . $e->getMessage());
@@ -1975,6 +2065,79 @@ class SuperAdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Todas las notificaciones marcadas como leídas'
+        ]);
+    }
+
+    /**
+     * Eliminar reserva con motivo
+     */
+    public function deleteReservation(Request $request, \App\Models\Reservation $reservation)
+    {
+        $request->validate([
+            'deletion_reason' => 'required|string|max:1000'
+        ]);
+
+        // Verificar que el usuario puede eliminar la reserva
+        if (!$reservation->canBeDeleted()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permisos para eliminar esta reserva'
+            ], 403);
+        }
+
+        // Actualizar la reserva con la información de eliminación
+        $reservation->update([
+            'deletion_reason' => $request->deletion_reason,
+            'deleted_by' => auth()->id(),
+            'deleted_at' => now(),
+            'status' => 'deleted'
+        ]);
+
+        // Registrar en auditoría
+        AuditLog::log(
+            'reservation_deleted',
+            'Reservation',
+            $reservation->id,
+            auth()->id(),
+            ['status' => 'deleted', 'deletion_reason' => $request->deletion_reason],
+            ['status' => $reservation->getOriginal('status')],
+            'Reserva eliminada: ' . $reservation->id . ' - Motivo: ' . $request->deletion_reason
+        );
+
+        // Notificar al usuario si no es una reserva de huésped
+        if (!$reservation->is_guest_reservation && $reservation->user_id) {
+            \App\Models\Notification::createSystemNotification(
+                $reservation->user_id,
+                'Reserva Eliminada',
+                "Tu reserva #{$reservation->id} ha sido eliminada por un administrador. Motivo: {$request->deletion_reason}",
+                ['reservation_id' => $reservation->id, 'deletion_reason' => $request->deletion_reason],
+                false,
+                auth()->id()
+            );
+
+            // Enviar correo de notificación
+            try {
+                $emailData = [
+                    'user_name' => $reservation->user->name,
+                    'property_title' => $reservation->property->name,
+                    'property_location' => $reservation->property->location,
+                    'check_in_date' => $reservation->check_in ? $reservation->check_in->format('d/m/Y') : 'N/A',
+                    'check_out_date' => $reservation->check_out ? $reservation->check_out->format('d/m/Y') : 'N/A',
+                    'guests' => $reservation->guests ?? 'N/A',
+                    'deletion_reason' => $request->deletion_reason
+                ];
+
+                \Mail::to($reservation->user->email)->send(
+                    new \App\Mail\ReservationNotification('reservation_deleted', $emailData)
+                );
+            } catch (\Exception $e) {
+                \Log::error('Error enviando correo de eliminación: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reserva eliminada correctamente'
         ]);
     }
 }

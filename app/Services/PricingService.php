@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Property;
 use App\Models\Discount;
 use App\Models\NightlyPrice;
+use App\Models\GlobalPricing;
 use App\Models\ReservationDiscount;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -82,7 +83,13 @@ class PricingService
             return $propertyPrice->getPriceForDate($date);
         }
 
-        // Buscar precio global
+        // Buscar precio global activo
+        $globalPricing = GlobalPricing::getActivePricing();
+        if ($globalPricing) {
+            return $globalPricing->final_price;
+        }
+
+        // Buscar precio global en NightlyPrice (sistema anterior)
         $globalPrice = NightlyPrice::global()
             ->active()
             ->where(function ($query) use ($date) {
@@ -199,6 +206,42 @@ class PricingService
     }
 
     /**
+     * Obtener el precio global activo
+     */
+    public function getActiveGlobalPricing(): ?GlobalPricing
+    {
+        return GlobalPricing::getActivePricing();
+    }
+
+    /**
+     * Calcular precio usando precio global
+     */
+    public function calculatePriceWithGlobalPricing(Carbon $startDate, Carbon $endDate): array
+    {
+        $globalPricing = $this->getActiveGlobalPricing();
+        
+        if (!$globalPricing) {
+            return [
+                'success' => false,
+                'message' => 'No hay precio global activo configurado'
+            ];
+        }
+
+        $nights = $startDate->diffInDays($endDate);
+        $basePrice = $globalPricing->final_price;
+        $totalPrice = $basePrice * $nights;
+
+        return [
+            'success' => true,
+            'global_pricing' => $globalPricing,
+            'nights' => $nights,
+            'base_price' => $basePrice,
+            'total_price' => $totalPrice,
+            'price_type' => $globalPricing->price_type
+        ];
+    }
+
+    /**
      * Obtener estadísticas de precios
      */
     public function getPricingStats(): array
@@ -206,6 +249,7 @@ class PricingService
         $totalProperties = Property::count();
         $activePrices = NightlyPrice::active()->count();
         $activeDiscounts = Discount::active()->count();
+        $activeGlobalPricing = GlobalPricing::getActivePricing();
         
         $averageBasePrice = NightlyPrice::active()
             ->whereNotNull('base_price')
@@ -215,7 +259,12 @@ class PricingService
             'total_properties' => $totalProperties,
             'active_prices' => $activePrices,
             'active_discounts' => $activeDiscounts,
-            'average_base_price' => round($averageBasePrice, 2)
+            'average_base_price' => round($averageBasePrice, 2),
+            'active_global_pricing' => $activeGlobalPricing ? [
+                'name' => $activeGlobalPricing->name,
+                'final_price' => $activeGlobalPricing->final_price,
+                'price_type' => $activeGlobalPricing->price_type
+            ] : null
         ];
     }
 }

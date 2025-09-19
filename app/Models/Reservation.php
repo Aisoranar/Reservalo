@@ -17,7 +17,13 @@ class Reservation extends Model
         'end_date',
         'status',
         'rejection_reason',
+        'deletion_reason',
+        'deleted_by',
+        'deleted_at',
         'total_price',
+        'pricing_method',
+        'global_pricing_id',
+        'pricing_details',
         'special_requests',
         'payment_status',
         'amount_paid',
@@ -39,8 +45,10 @@ class Reservation extends Model
         'end_date' => 'date',
         'total_price' => 'decimal:2',
         'amount_paid' => 'decimal:2',
+        'pricing_details' => 'array',
         'approved_at' => 'datetime',
-        'paid_at' => 'datetime'
+        'paid_at' => 'datetime',
+        'deleted_at' => 'datetime'
     ];
 
     public function user(): BelongsTo
@@ -56,6 +64,19 @@ class Reservation extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    /**
+     * Relación con el precio global usado
+     */
+    public function globalPricing(): BelongsTo
+    {
+        return $this->belongsTo(GlobalPricing::class, 'global_pricing_id');
     }
 
     /**
@@ -153,6 +174,12 @@ class Reservation extends Model
     {
         return $this->status === 'pending' || 
                ($this->status === 'approved' && $this->start_date->isFuture());
+    }
+
+    public function canBeDeleted()
+    {
+        // Verificar si el usuario tiene permiso para eliminar reservas
+        return auth()->user()->hasPermission('delete_reservations');
     }
 
     /**

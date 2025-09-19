@@ -50,6 +50,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'create_reservations', 'display_name' => 'Crear Reservas', 'description' => 'Crear nuevas reservas', 'category' => 'reservations'],
             ['name' => 'edit_reservations', 'display_name' => 'Editar Reservas', 'description' => 'Modificar reservas existentes', 'category' => 'reservations'],
             ['name' => 'cancel_reservations', 'display_name' => 'Cancelar Reservas', 'description' => 'Cancelar reservas', 'category' => 'reservations'],
+            ['name' => 'delete_reservations', 'display_name' => 'Eliminar Reservas', 'description' => 'Eliminar reservas permanentemente', 'category' => 'reservations'],
             ['name' => 'approve_reservations', 'display_name' => 'Aprobar Reservas', 'description' => 'Aprobar/rechazar reservas', 'category' => 'reservations'],
             
             // Permisos de membresías
@@ -92,7 +93,7 @@ class RolePermissionSeeder extends Seeder
                 'permissions' => [
                     'manage_users', 'view_users', 'create_users', 'edit_users', 'activate_users',
                     'manage_properties', 'view_properties', 'create_properties', 'edit_properties', 'approve_properties',
-                    'manage_reservations', 'view_reservations', 'create_reservations', 'edit_reservations', 'approve_reservations',
+                    'manage_reservations', 'view_reservations', 'create_reservations', 'edit_reservations', 'approve_reservations', 'delete_reservations',
                     'manage_memberships', 'view_memberships', 'create_memberships', 'extend_memberships', 'cancel_memberships',
                     'view_reports', 'export_data',
                     'view_profile', 'edit_profile', 'change_password'

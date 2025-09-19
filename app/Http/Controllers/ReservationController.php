@@ -31,8 +31,8 @@ class ReservationController extends Controller
     public function store(Request $request, Property $property)
     {
         $validator = Validator::make($request->all(), [
-            'start_date' => 'required|date|after:today',
-            'end_date' => 'required|date|after:start_date',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'special_requests' => 'nullable|string|max:500'
         ]);
 
@@ -143,8 +143,8 @@ class ReservationController extends Controller
     public function blockDates(Request $request, Property $property)
     {
         $validator = Validator::make($request->all(), [
-            'start_date' => 'required|date|after:today',
-            'end_date' => 'required|date|after:start_date',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string|max:255',
             'type' => 'required|in:maintenance,event,manual'
         ]);

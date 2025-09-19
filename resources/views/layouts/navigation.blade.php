@@ -201,8 +201,8 @@
                                 
                                 <!-- Plantillas de Correo -->
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('superadmin.email-templates*') ? 'active' : '' }}" href="{{ route('superadmin.email-templates') }}">
-                                        <i class="fas fa-envelope me-1"></i>Plantillas de Correo
+                                    <a class="nav-link {{ request()->routeIs('superadmin.email-templates*') ? 'active' : '' }}" href="{{ route('superadmin.email-templates') }}" style="color: #17a2b8 !important;">
+                                        <i class="fas fa-envelope me-1" style="color: #17a2b8;"></i>Plantillas de Correo
                                     </a>
                                 </li>
                                 
