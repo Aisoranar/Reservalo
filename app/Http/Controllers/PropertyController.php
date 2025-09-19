@@ -97,15 +97,26 @@ class PropertyController extends Controller
 
         $properties = $query->paginate(12)->withQueryString();
 
-        // Obtener estadísticas para filtros
+        // Calcular precios efectivos para cada propiedad
+        $pricingService = new \App\Services\PricingService();
+        $activeGlobalPricing = \App\Models\GlobalPricing::getActivePricing();
+        
+        $properties->getCollection()->transform(function ($property) use ($pricingService) {
+            $property->effective_price = $pricingService->getNightlyPrice($property, now());
+            return $property;
+        });
+
+        // Obtener estadísticas para filtros usando precios efectivos
+        $effectivePrices = $properties->getCollection()->pluck('effective_price');
         $stats = [
             'total_properties' => Property::active()->count(),
             'price_range' => [
-                'min' => Property::active()->min('price') ?? 0,
-                'max' => Property::active()->max('price') ?? 1000
+                'min' => $effectivePrices->min() ?? 0,
+                'max' => $effectivePrices->max() ?? 1000
             ],
             'types' => Property::active()->distinct('type')->pluck('type'),
-            'amenities' => Property::active()->whereNotNull('amenities')->get()->pluck('amenities')->flatten()->unique()->take(10)
+            'amenities' => Property::active()->whereNotNull('amenities')->get()->pluck('amenities')->flatten()->unique()->take(10),
+            'active_global_pricing' => $activeGlobalPricing
         ];
 
         return view('properties.index', compact('properties', 'stats'));
@@ -123,7 +134,14 @@ class PropertyController extends Controller
         // Cargar precios por noche
         $property->load('nightlyPrices');
         
-        return view('properties.show', compact('property', 'approvedReservations'));
+        // Obtener precio global activo
+        $activeGlobalPricing = \App\Models\GlobalPricing::getActivePricing();
+        
+        // Calcular precio efectivo usando PricingService
+        $pricingService = new \App\Services\PricingService();
+        $effectivePrice = $pricingService->getNightlyPrice($property, now());
+        
+        return view('properties.show', compact('property', 'approvedReservations', 'activeGlobalPricing', 'effectivePrice'));
     }
 
     public function quickView(Property $property)
@@ -306,5 +324,35 @@ class PropertyController extends Controller
 
         $status = $property->is_active ? 'activada' : 'desactivada';
         return back()->with('success', "Propiedad {$status} exitosamente");
+    }
+
+    /**
+     * Obtener fechas ocupadas para una propiedad
+     */
+    public function getOccupiedDates(Property $property)
+    {
+        $occupiedDates = \App\Models\Reservation::where('property_id', $property->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->get()
+            ->map(function($reservation) {
+                $dates = [];
+                $start = \Carbon\Carbon::parse($reservation->start_date);
+                $end = \Carbon\Carbon::parse($reservation->end_date);
+                
+                while ($start->lte($end)) {
+                    $dates[] = $start->format('Y-m-d');
+                    $start->addDay();
+                }
+                
+                return $dates;
+            })
+            ->flatten()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'occupied_dates' => $occupiedDates
+        ]);
     }
 }

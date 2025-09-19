@@ -109,18 +109,22 @@
             <div class="col-12 text-center">
                 <h2 class="display-5 fw-bold mb-3">Propiedades Destacadas</h2>
                 <p class="lead text-muted">Descubre nuestras mejores opciones</p>
+                
+                @if($stats['active_global_pricing'])
+                <div class="pricing-info mt-4">
+                    <div class="d-inline-block bg-primary bg-opacity-10 rounded-pill px-4 py-2">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="fas fa-tag text-primary me-2"></i>
+                            <span class="fw-bold text-primary">Precio Estándar: ${{ number_format($stats['active_global_pricing']->final_price, 0, ',', '.') }}</span>
+                            <span class="text-muted ms-2">({{ $stats['active_global_pricing']->name }})</span>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
         
         <div class="row g-4">
-            @php
-                $featuredProperties = \App\Models\Property::active()
-                    ->where('featured_until', '>', now())
-                    ->with(['primaryImage', 'city.department'])
-                    ->take(6)
-                    ->get();
-            @endphp
-            
             @forelse($featuredProperties as $property)
                 <div class="col-md-6 col-lg-4">
                     <div class="featured-property-card">
@@ -163,7 +167,7 @@
                                 </span>
                             </div>
                             <div class="property-price">
-                                <span class="price">{{ $property->formatted_price }}</span>
+                                <span class="price">${{ number_format($property->effective_price, 0, ',', '.') }}</span>
                                 <span class="period">por noche</span>
                             </div>
                             <a href="{{ route('properties.show', $property) }}" 
@@ -527,6 +531,40 @@
 .period {
     font-size: 0.9rem;
     color: #666;
+}
+
+/* Estilos mejorados para botones de Ver Detalles */
+.btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700 !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    font-size: 0.9rem !important;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4) !important;
+}
+
+.btn-primary:focus {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.btn-primary:active {
+    background: linear-gradient(135deg, #1e7e34 0%, #1a7a6b 100%) !important;
+    color: white !important;
+    transform: translateY(0) !important;
 }
 
 .category-card {

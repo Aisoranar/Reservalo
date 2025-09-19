@@ -25,9 +25,7 @@ use Illuminate\Support\Facades\Route;
 // Middleware global para verificar sistema activo
 Route::middleware(['system.active'])->group(function () {
     // Rutas públicas
-    Route::get('/', function () {
-        return view('home');
-    })->name('home');
+    Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/propiedades', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/propiedades/{property}', [PropertyController::class, 'show'])->name('properties.show');
@@ -40,6 +38,9 @@ Route::get('/api/cities/by-department', [LocationController::class, 'getCitiesBy
 
 // API para vista rápida (pública)
 Route::get('/api/properties/{property}/quick-view', [PropertyController::class, 'quickView'])->name('api.properties.quick-view');
+
+// API para fechas ocupadas (pública)
+Route::get('/api/properties/{property}/occupied-dates', [PropertyController::class, 'getOccupiedDates'])->name('api.properties.occupied-dates');
 
 
 
@@ -69,8 +70,8 @@ Route::middleware(['auth', 'active.user', 'must.change.password'])->group(functi
     // Las membresías son gestionadas solo por administradores
     // Los usuarios regulares no tienen acceso a gestión de membresías
 
-    // Panel de superadmin
-    Route::middleware(['role:superadmin', 'audit.logging'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    // Panel de superadmin (accesible por superadmin y admin)
+    Route::middleware(['roles:superadmin,admin', 'audit.logging'])->prefix('superadmin')->name('superadmin.')->group(function () {
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
         Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('users.create');
@@ -173,7 +174,6 @@ Route::middleware(['auth', 'active.user', 'must.change.password'])->group(functi
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/properties', [AdminController::class, 'properties'])->name('properties.index');
-        Route::get('/reservations', [AdminController::class, 'reservations'])->name('reservations');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
         Route::get('/export', [AdminController::class, 'exportReservations'])->name('export');

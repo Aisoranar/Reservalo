@@ -248,10 +248,93 @@
                             </ul>
                         </li>
                     @elseif(auth()->user()->isAdmin())
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                                <i class="fas fa-tachometer-alt me-1"></i>Admin
+                        <!-- Menú especial para Administrador -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-shield me-1 text-info"></i>Admin
                             </a>
+                            <ul class="dropdown-menu dropdown-menu-lg-end">
+                                <li><h6 class="dropdown-header text-info fw-bold">🛡️ Panel de Administración</h6></li>
+                                
+                                <!-- Dashboard -->
+                                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a></li>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Gestión de Reservas -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-calendar-check me-2 text-primary"></i>Reservas
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reservations') }}">
+                                            <i class="fas fa-list me-2"></i>Todas las Reservas
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reservations.pending') }}">
+                                            <i class="fas fa-clock me-2"></i>Pendientes
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.reservations.create') }}">
+                                            <i class="fas fa-plus me-2"></i>Crear Reserva
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Gestión de Usuarios -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-users me-2 text-success"></i>Usuarios
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.users') }}">
+                                            <i class="fas fa-list me-2"></i>Lista de usuarios
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.deactivated-users.index') }}">
+                                            <i class="fas fa-user-times me-2"></i>Usuarios desactivados
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Gestión de Propiedades -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-home me-2 text-warning"></i>Propiedades
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('admin.properties.index') }}">
+                                            <i class="fas fa-list me-2"></i>Lista de propiedades
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.properties.create') }}">
+                                            <i class="fas fa-plus me-2"></i>Crear propiedad
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <!-- Gestión de Precios -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-dollar-sign me-2 text-success"></i>Precios
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ route('superadmin.pricing') }}">
+                                            <i class="fas fa-tag me-2"></i>Gestión de precios
+                                        </a></li>
+                                    </ul>
+                                </li>
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                
+                                <!-- Reportes -->
+                                <li><a class="dropdown-item" href="{{ route('admin.reports') }}">
+                                    <i class="fas fa-chart-bar me-2"></i>Reportes
+                                </a></li>
+                                
+                                <!-- Configuraciones -->
+                                <li><a class="dropdown-item" href="{{ route('admin.settings') }}">
+                                    <i class="fas fa-cog me-2"></i>Configuraciones
+                                </a></li>
+                            </ul>
                         </li>
                     @endif
                 @endauth

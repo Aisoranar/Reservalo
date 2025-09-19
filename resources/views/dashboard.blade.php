@@ -363,6 +363,21 @@
         box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     }
     
+    /* Estilos específicos para botones Ver Detalles */
+    .btn-primary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3) !important;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #218838 0%, #1ea085 100%) !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4) !important;
+    }
+    
     .rounded-circle {
         width: 60px;
         height: 60px;

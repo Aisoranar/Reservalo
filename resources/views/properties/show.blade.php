@@ -1,70 +1,138 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('properties.index') }}" class="text-decoration-none">Propiedades</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ $property->name }}</li>
-        </ol>
-    </nav>
+<div class="container-fluid px-0">
+    <!-- Hero Section con imagen de fondo -->
+    <div class="hero-section position-relative" style="height: 60vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="hero-overlay position-absolute w-100 h-100" style="background: rgba(0,0,0,0.4);"></div>
+        
+        <!-- Breadcrumb flotante -->
+        <div class="position-absolute top-0 start-0 p-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-white bg-opacity-90 rounded-pill px-3 py-2 shadow-sm">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('properties.index') }}" class="text-decoration-none text-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Propiedades
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ $property->name }}</li>
+                </ol>
+            </nav>
+        </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Galería de imágenes -->
-            @if($property->images->count() > 0)
-                <div class="property-gallery mb-4">
-                    <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-indicators">
-                            @foreach($property->images as $index => $image)
-                                <button type="button" data-bs-target="#propertyCarousel" 
-                                        data-bs-slide-to="{{ $index }}" 
-                                        class="{{ $index === 0 ? 'active' : '' }}"
-                                        aria-label="Slide {{ $index + 1 }}"></button>
-                            @endforeach
+        <!-- Contenido del hero -->
+        <div class="position-absolute bottom-0 start-0 w-100 p-4">
+            <div class="container">
+                <div class="row align-items-end">
+                    <div class="col-lg-8">
+                        <h1 class="display-4 text-white fw-bold mb-3 text-shadow">{{ $property->name }}</h1>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-map-marker-alt text-warning me-2 fs-5"></i>
+                            <span class="text-white fs-5">{{ $property->location }}</span>
+                            @if($property->city)
+                                <span class="text-white-50 ms-2 fs-5">• {{ $property->city->name }}, {{ $property->city->department->name }}</span>
+                            @endif
                         </div>
-                        <div class="carousel-inner rounded-3 overflow-hidden shadow">
-                            @foreach($property->images as $index => $image)
-                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                                    <img src="{{ $image->full_url }}" class="d-block w-100" 
-                                         alt="{{ $image->alt_text }}" style="height: 500px; object-fit: cover;">
+                        
+                        <!-- Rating mejorado -->
+                        @if($property->rating > 0)
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rating-stars me-3">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star {{ $i <= $property->rating ? 'text-warning' : 'text-white-50' }} me-1 fs-5"></i>
+                                    @endfor
                                 </div>
-                            @endforeach
-                        </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon"></span>
-                            <span class="visually-hidden">Anterior</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon"></span>
-                            <span class="visually-hidden">Siguiente</span>
-                        </button>
+                                <span class="text-white fw-bold fs-5 me-2">{{ number_format($property->rating, 1) }}</span>
+                                <span class="text-white-50 fs-5">({{ $property->review_count }} reseñas)</span>
+                            </div>
+                        @endif
                     </div>
                     
-                    <!-- Miniaturas -->
-                    @if($property->images->count() > 1)
-                        <div class="image-thumbnails mt-3 d-flex gap-2 overflow-auto">
-                            @foreach($property->images as $index => $image)
-                                <img src="{{ $image->full_url }}" 
-                                     class="thumbnail-img" 
-                                     alt="{{ $image->alt_text }}"
-                                     onclick="goToSlide({{ $index }})"
-                                     style="width: 80px; height: 60px; object-fit: cover; cursor: pointer; border-radius: 8px; border: 2px solid transparent;"
-                                     onmouseover="this.style.borderColor='#007bff'"
-                                     onmouseout="this.style.borderColor='transparent'">
-                            @endforeach
+                    <div class="col-lg-4 text-end">
+                        <div class="price-card bg-white bg-opacity-95 rounded-4 p-4 shadow-lg">
+                            <div class="price-display">
+                                <span class="h2 text-primary fw-bold">${{ number_format($effectivePrice, 0, ',', '.') }}</span>
+                                <span class="text-muted">/noche</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center mt-3">
+                                @auth
+                                    <button class="btn btn-outline-primary btn-sm me-2" id="favoriteBtn">
+                                        <i class="far fa-heart me-1"></i>Favorito
+                                    </button>
+                                @endauth
+                                <button class="btn btn-primary btn-sm">
+                                    <i class="fas fa-share me-1"></i>Compartir
+                                </button>
+                            </div>
                         </div>
-                    @endif
-                </div>
-            @else
-                <div class="no-image-placeholder mb-4 rounded-3 bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
-                    <div class="text-center text-muted">
-                        <i class="fas fa-image fa-4x mb-3"></i>
-                        <p class="mb-0">No hay imágenes disponibles</p>
                     </div>
                 </div>
-            @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Galería de imágenes mejorada -->
+                @if($property->images->count() > 0)
+                    <div class="property-gallery mb-5">
+                        <div class="gallery-container position-relative">
+                            <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner rounded-4 overflow-hidden shadow-lg">
+                                    @foreach($property->images as $index => $image)
+                                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                            <div class="image-container position-relative">
+                                                <img src="{{ $image->full_url }}" class="d-block w-100 gallery-image" 
+                                                     alt="{{ $image->alt_text }}">
+                                                <div class="image-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                                    <div class="image-actions">
+                                                        <button class="btn btn-light btn-lg rounded-circle me-2" onclick="openImageModal('{{ $image->full_url }}')">
+                                                            <i class="fas fa-expand"></i>
+                                                        </button>
+                                                        <button class="btn btn-light btn-lg rounded-circle">
+                                                            <i class="fas fa-download"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                
+                                <!-- Controles personalizados -->
+                                <button class="carousel-control-prev custom-control" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="carousel-control-next custom-control" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                                
+                                <!-- Indicadores personalizados -->
+                                <div class="carousel-indicators custom-indicators">
+                                    @foreach($property->images as $index => $image)
+                                        <button type="button" data-bs-target="#propertyCarousel" 
+                                                data-bs-slide-to="{{ $index }}" 
+                                                class="{{ $index === 0 ? 'active' : '' }}"
+                                                aria-label="Slide {{ $index + 1 }}">
+                                            <img src="{{ $image->full_url }}" alt="Thumbnail {{ $index + 1 }}">
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="no-image-placeholder mb-5 rounded-4 bg-gradient d-flex align-items-center justify-content-center" 
+                         style="height: 500px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-image fa-5x mb-4 text-primary opacity-50"></i>
+                            <h4 class="mb-2">No hay imágenes disponibles</h4>
+                            <p class="mb-0">Próximamente se agregarán fotos de esta propiedad</p>
+                        </div>
+                    </div>
+                @endif
 
             <!-- Información principal -->
             <div class="card border-0 shadow-sm mb-4">
@@ -118,13 +186,18 @@
                                          <!-- Precio destacado -->
                      <div class="price-highlight text-center p-3 bg-primary bg-opacity-10 rounded-3 mb-4">
                          <div class="h2 text-primary mb-1" id="dynamic-price">
-                             @if($property->nightlyPrices && $property->nightlyPrices->where('is_active', true)->count() > 0)
-                                 ${{ number_format($property->nightlyPrices->where('is_active', true)->count() > 0 ? $property->nightlyPrices->where('is_active', true)->first()->base_price : $property->price, 0) }}
-                             @else
-                                 ${{ number_format($property->price, 0) }}
-                             @endif
+                             ${{ number_format($effectivePrice, 0, ',', '.') }}
                          </div>
                          <div class="text-muted mb-1 small">por noche</div>
+                         
+                         @if($activeGlobalPricing)
+                             <div class="price-info mt-2">
+                                 <small class="text-success">
+                                     <i class="fas fa-info-circle me-1"></i>
+                                     Precio según: {{ $activeGlobalPricing->name }}
+                                 </small>
+                             </div>
+                         @endif
                         
                         <!-- Información de precios especiales -->
                         @if($property->nightlyPrices && $property->nightlyPrices->count() > 0)
@@ -274,125 +347,155 @@
                         </div>
                     </div>
 
-                    <!-- Calendario de disponibilidad -->
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-header bg-white border-0 py-3">
-                            <h5 class="mb-0 text-dark">
-                                <i class="fas fa-calendar-alt text-primary me-2"></i>
-                                Calendario de disponibilidad
-                            </h5>
-                            <small class="text-muted">Selecciona fechas para ver disponibilidad</small>
                         </div>
-                        <div class="card-body p-3">
-                            <div class="alert alert-info mb-3">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>¿Cómo reservar?</strong> Haz clic en una fecha de inicio y luego en una fecha de fin en el calendario, o usa los campos de fecha del formulario.
+            </div>
+        </div>
+
+
+        <div class="col-lg-4">
+            <!-- Calendario de disponibilidad -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-gradient text-white border-0 py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h6 class="mb-0 text-white text-center">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Disponibilidad
+                    </h6>
+                </div>
+                <div class="card-body p-2">
+                    <!-- Calendario Compacto -->
+                    <div class="mini-calendar-container">
+                        <div class="mini-calendar-header">
+                            <button type="button" class="mini-calendar-nav-btn" id="prevMonth">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h6 class="mini-calendar-month-year" id="currentMonthYear">Sept 2025</h6>
+                            <button type="button" class="mini-calendar-nav-btn" id="nextMonth">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="mini-calendar-weekdays">
+                            <div class="mini-weekday">L</div>
+                            <div class="mini-weekday">M</div>
+                            <div class="mini-weekday">X</div>
+                            <div class="mini-weekday">J</div>
+                            <div class="mini-weekday">V</div>
+                            <div class="mini-weekday">S</div>
+                            <div class="mini-weekday">D</div>
+                        </div>
+                        <div class="mini-calendar-days" id="calendarDays">
+                            <!-- Los días se generarán dinámicamente -->
+                        </div>
+                        
+                        <!-- Indicador de fechas ocupadas -->
+                        <div class="mini-occupied-indicator" id="occupiedIndicator" style="display: none;">
+                            <i class="fas fa-circle"></i>
+                            <span>Cargando...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Fechas seleccionadas compactas -->
+                    <div class="mini-selected-dates mt-3">
+                        <div class="mini-date-input-group mb-2">
+                            <label class="form-label small fw-bold">Entrada</label>
+                            <input type="text" class="form-control form-control-sm" id="selectedStartDate" 
+                                   placeholder="Selecciona fecha" readonly>
+                        </div>
+                        
+                        <div class="mini-date-input-group mb-2">
+                            <label class="form-label small fw-bold">Salida</label>
+                            <input type="text" class="form-control form-control-sm" id="selectedEndDate" 
+                                   placeholder="Selecciona fecha" readonly>
+                        </div>
+                        
+                        <div class="d-grid gap-1 mb-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="clearDates">
+                                <i class="fas fa-times me-1"></i>Limpiar
+                            </button>
+                        </div>
+                        
+                        <!-- Estado de selección -->
+                        <div class="mini-selection-status" id="selectionStatus" style="display: none;">
+                            <div class="alert alert-info py-2 text-center">
+                                <small id="statusText">Selecciona fecha de salida</small>
                             </div>
-                            <div id="calendar" class="availability-calendar"></div>
-                            <div class="mt-3">
-                                <div class="d-flex align-items-center gap-3 small">
-                                    <div class="d-flex align-items-center">
-                                        <div class="availability-legend bg-success me-2" style="width: 16px; height: 16px; border-radius: 3px;"></div>
-                                        <span>Disponible</span>
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <div class="availability-legend bg-warning me-2" style="width: 16px; height: 16px; border-radius: 3px;"></div>
-                                        <span>Pendiente de aprobación</span>
-                                    </div>
-                                    <div class="availability-legend bg-danger me-2" style="width: 16px; height: 16px; border-radius: 3px;"></div>
-                                    <span>Ocupado</span>
-                                </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leyenda compacta -->
+                    <div class="mini-legend mt-2">
+                        <div class="d-flex justify-content-between small">
+                            <div class="d-flex align-items-center">
+                                <div class="mini-legend-item bg-success me-1"></div>
+                                <span>Libre</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="mini-legend-item bg-danger me-1"></div>
+                                <span>Ocupado</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <!-- Formulario de reserva -->
+            <!-- Información importante -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white border-0 py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información importante
+                    </h5>
+                </div>
+                <div class="card-body p-3">
+                    <div class="mb-3">
+                        <h6 class="text-primary mb-2">
+                            <i class="fas fa-clock me-2"></i>
+                            Check-in: 15:00
+                        </h6>
+                        <h6 class="text-success mb-2">
+                            <i class="fas fa-clock me-2"></i>
+                            Check-out: 11:00
+                        </h6>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-info mb-2">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Pago: Al confirmar la reserva
+                        </h6>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-warning mb-2">
+                            <i class="fas fa-calendar-times me-2"></i>
+                            Cancelación: Cancelación gratuita hasta 7 días antes del check-in.
+                        </h6>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-success mb-2">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            Seguridad: Reserva segura y confirmada
+                        </h6>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botón de reserva -->
             @auth
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-primary text-white border-0 py-3">
-                        <h5 class="mb-0">
+                    <div class="card-body text-center p-4">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            ¿Listo para reservar?
+                        </h5>
+                        <p class="text-muted mb-4">Selecciona las fechas en el calendario y completa tu reserva</p>
+                        <button type="button" class="btn btn-primary btn-lg w-100" id="reserveBtn" disabled>
                             <i class="fas fa-calendar-plus me-2"></i>
                             Reservar ahora
-                        </h5>
-                    </div>
-                    <div class="card-body p-3">
-                        <form action="{{ route('reservations.store', $property) }}" method="POST" id="reservationForm" onsubmit="return validateForm()">
-                            @csrf
-                            
-                            <!-- Fechas -->
-                            <div class="mb-3">
-                                <label for="start_date" class="form-label fw-bold small">Fecha de llegada</label>
-                                <input type="date" class="form-control" id="start_date" name="start_date" 
-                                       min="{{ date('Y-m-d') }}" required>
-                                <small class="text-muted">Debe ser hoy o una fecha futura</small>
-                            </div>
- 
-                            <div class="mb-3">
-                                <label for="end_date" class="form-label fw-bold small">Fecha de salida</label>
-                                <input type="date" class="form-control" id="end_date" name="end_date" 
-                                       min="{{ date('Y-m-d') }}" required>
-                                <small class="text-muted">Debe ser posterior a la fecha de llegada</small>
-                            </div>
-
-                            <!-- Noches -->
-                            <div class="mb-3">
-                                <label for="nights" class="form-label fw-bold small">Noches</label>
-                                <input type="text" class="form-control bg-light" id="nights" readonly>
-                                
-                                <!-- Precio por noche -->
-                                <div class="price-per-night mt-2" id="price-per-night" style="display: none;">
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Precio promedio por noche: <span id="avg-night-price" class="fw-bold text-primary">$0</span>
-                                    </small>
-                                </div>
-                            </div>
-
-                            <!-- Precio total -->
-                            <div class="mb-3">
-                                <label for="total_price" class="form-label fw-bold small">Precio total</label>
-                                <input type="text" class="form-control bg-light fw-bold text-primary" id="total_price" readonly>
-                                
-                                <!-- Desglose de precios -->
-                                <div class="price-breakdown mt-2" id="price-breakdown" style="display: none;">
-                                    <div class="small text-muted">
-                                        <div class="d-flex justify-content-between">
-                                            <span>Subtotal:</span>
-                                            <span id="subtotal-amount">$0</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between text-success" id="discounts-line" style="display: none;">
-                                            <span>Descuentos:</span>
-                                            <span id="discounts-amount">-$0</span>
-                                        </div>
-                                        <hr class="my-1">
-                                        <div class="d-flex justify-content-between fw-bold">
-                                            <span>Total:</span>
-                                            <span id="final-amount">$0</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Solicitudes especiales -->
-                            <div class="mb-3">
-                                <label for="special_requests" class="form-label fw-bold small">Solicitudes especiales</label>
-                                <textarea class="form-control" id="special_requests" name="special_requests" 
-                                           rows="2" placeholder="Algún requerimiento especial..."></textarea>
-                            </div>
-                            
-                            <!-- Información de descuentos -->
-                            <div id="discounts-info" class="mb-3"></div>
-
-                            <!-- Botón de envío -->
-                            <button type="submit" class="btn btn-primary w-100" id="submitBtn" disabled>
-                                <i class="fas fa-calendar-check me-2"></i>
-                                Enviar solicitud
-                            </button>
-                        </form>
+                        </button>
+                        <small class="text-muted d-block mt-2">
+                            Las fechas se sincronizarán automáticamente
+                        </small>
                     </div>
                 </div>
             @else
@@ -481,6 +584,241 @@
 
 <!-- Estilos personalizados -->
 <style>
+/* Estilos para el nuevo diseño dinámico */
+
+/* Hero Section */
+.hero-section {
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+}
+
+.text-shadow {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.price-card {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Galería mejorada */
+.gallery-container {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.gallery-image {
+    height: 500px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.image-container:hover .gallery-image {
+    transform: scale(1.05);
+}
+
+.image-overlay {
+    background: rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-container:hover .image-overlay {
+    opacity: 1;
+}
+
+.image-actions {
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.image-container:hover .image-actions {
+    transform: translateY(0);
+}
+
+/* Controles personalizados */
+.custom-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #333;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.custom-control:hover {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.carousel-control-prev.custom-control {
+    left: 20px;
+}
+
+.carousel-control-next.custom-control {
+    right: 20px;
+}
+
+/* Indicadores personalizados */
+.custom-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+.custom-indicators button {
+    width: 60px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.custom-indicators button.active,
+.custom-indicators button:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.custom-indicators button img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Cards de información */
+.info-card .card-header {
+    border: none;
+}
+
+.feature-item {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: #e9ecef;
+}
+
+.service-item {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.service-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: #e9ecef;
+}
+
+/* Calendario mejorado */
+.mini-calendar-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* Botones mejorados */
+.btn {
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 50vh;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .custom-control {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .custom-indicators button {
+        width: 40px;
+        height: 30px;
+    }
+    
+    .gallery-image {
+        height: 300px;
+    }
+}
+
+/* Efectos de hover mejorados */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* Gradientes personalizados */
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+}
+
+/* Estilos existentes del calendario */
 .property-gallery .carousel {
     border-radius: 16px;
     overflow: hidden;
@@ -551,40 +889,360 @@
     border-color: #007bff;
 }
 
- .availability-calendar {
-     min-height: 300px;
- }
- 
- /* Calendario compacto */
- .fc {
-     font-size: 0.875rem;
- }
- 
- .fc .fc-toolbar {
-     padding: 0.5rem;
- }
- 
- .fc .fc-toolbar-title {
-     font-size: 1.1rem;
- }
- 
- .fc .fc-button {
-     padding: 0.25rem 0.5rem;
-     font-size: 0.75rem;
- }
- 
- .fc .fc-daygrid-day {
-     min-height: 2.5rem;
- }
- 
- .fc .fc-daygrid-day-number {
+/* Calendario Compacto */
+.mini-calendar-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+    color: white;
+    margin-bottom: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.mini-calendar-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.mini-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.mini-calendar-nav-btn {
+    background: rgba(255,255,255,0.25);
+    border: none;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 0.8rem;
+}
+
+.mini-calendar-nav-btn:hover {
+    background: rgba(255,255,255,0.4);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.mini-calendar-month-year {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.mini-calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.mini-weekday {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.7rem;
+    opacity: 0.9;
+    padding: 4px 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.mini-calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    background: rgba(78, 205, 196, 0.3);
+    color: white;
+    border: 1px dashed #4ecdc4;
+    backdrop-filter: blur(10px);
+    min-height: 28px;
+}
+
+.calendar-day.selectable {
+    animation: pulse-glow 2s infinite;
+}
+
+.calendar-day:hover {
+    background: rgba(78, 205, 196, 0.5);
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.3);
+}
+
+.calendar-day.other-month {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.05);
+}
+
+.calendar-day.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.05);
+}
+
+.calendar-day.selected {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    border: 2px solid rgba(255,255,255,0.8);
+    transform: scale(1.05);
+}
+
+.calendar-day.occupied {
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e) !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    opacity: 0.9;
+    font-weight: 700;
+    border: 2px solid #ff4757 !important;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+    position: relative;
+    animation: none;
+}
+
+.calendar-day.occupied:hover {
+    transform: none !important;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e) !important;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.5);
+}
+
+.calendar-day.occupied::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background: #ffffff;
+    border-radius: 50%;
+    animation: pulse-occupied 1.5s infinite;
+    box-shadow: 0 0 0 2px #ff4757;
+}
+
+.calendar-day.today {
+    background: linear-gradient(45deg, #ff6b6b, #ffa726);
+    box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+    font-weight: 700;
+}
+
+.calendar-day.selected-start {
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    box-shadow: 0 4px 15px rgba(78,205,196,0.4);
+    font-weight: 700;
+}
+
+.calendar-day.selected-end {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+    font-weight: 700;
+}
+
+.calendar-day.in-range {
+    background: rgba(78, 205, 196, 0.2);
+    color: white;
+    font-weight: 600;
+    border: 1px dashed #4ecdc4;
+    animation: none;
+}
+
+.calendar-day.blocked-range {
+    background: linear-gradient(45deg, #ffa726, #ffb74d) !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+    font-weight: 600;
+    border: 2px dashed #ff9800 !important;
+    position: relative;
+}
+
+.calendar-day.blocked-range:hover {
+    transform: none !important;
+    background: linear-gradient(45deg, #ffa726, #ffb74d) !important;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.calendar-day.blocked-range::before {
+    content: '⚠';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+@keyframes pulse-glow {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.3);
+        transform: scale(1.02);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(78, 205, 196, 0.7);
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse-occupied {
+    0% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.7;
+        transform: scale(1.2);
+    }
+    100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.mini-occupied-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+}
+
+.mini-occupied-indicator i {
+    animation: pulse-occupied 2s infinite;
+}
+
+@keyframes pulse-occupied {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Panel de fechas seleccionadas compacto */
+.mini-selected-dates {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.mini-date-input-group {
+    margin-bottom: 8px;
+}
+
+.mini-date-input-group .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 4px;
      font-size: 0.8rem;
-     padding: 0.25rem;
- }
- 
- .fc .fc-event {
+}
+
+.mini-date-input-group .form-control {
+    border-color: #dee2e6;
+    background: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.375rem 0.5rem;
+}
+
+.mini-date-input-group .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.15rem rgba(102, 126, 234, 0.25);
+}
+
+.mini-selection-status {
+    margin-top: 8px;
+}
+
+.mini-selection-status .alert {
+    margin-bottom: 0;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    border: none;
+    background: #e3f2fd;
+    padding: 0.5rem;
+}
+
+/* Leyenda compacta */
+.mini-legend {
+    margin-top: 8px;
+}
+
+.mini-legend-item {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+/* Responsive para calendario compacto */
+@media (max-width: 768px) {
+    .mini-calendar-container {
+        padding: 12px;
+    }
+    
+    .calendar-day {
      font-size: 0.7rem;
-     padding: 0.1rem 0.2rem;
+        min-height: 24px;
+    }
+    
+    .mini-calendar-weekdays {
+        gap: 2px;
+        margin-bottom: 6px;
+    }
+    
+    .mini-calendar-days {
+        gap: 2px;
+    }
+    
+    .mini-selected-dates {
+        padding: 10px;
+    }
  }
  
  /* Leyenda de disponibilidad */
@@ -659,13 +1317,31 @@
 </style>
 
 <!-- JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Script cargado completamente');
     
-    // Inicializar calendario
-    initializeCalendar();
+    // Variables del calendario dinámico
+    let currentDate = new Date();
+    let selectedStartDate = null;
+    let selectedEndDate = null;
+    let isSelectingEndDate = false;
+    let occupiedDates = [];
+    
+    // Inicializar calendario dinámico
+    initializeDynamicCalendar();
+    
+    // Configurar botón de reserva
+    const reserveBtn = document.getElementById('reserveBtn');
+    if (reserveBtn) {
+        reserveBtn.addEventListener('click', function() {
+            if (selectedStartDate && selectedEndDate) {
+                // Mostrar modal de confirmación o mensaje
+                alert('Funcionalidad de reserva en desarrollo. Las fechas seleccionadas son: ' + 
+                      selectedStartDate.toLocaleDateString() + ' - ' + selectedEndDate.toLocaleDateString());
+            }
+        });
+    }
     
     // Cargar precios nocturnos
     loadNightlyPrices();
@@ -677,130 +1353,899 @@ document.addEventListener('DOMContentLoaded', function() {
     setupBackToTop();
 });
 
+// Funcionalidades dinámicas mejoradas
+
 // Función para ir a una slide específica
 function goToSlide(index) {
     const carousel = new bootstrap.Carousel(document.getElementById('propertyCarousel'));
     carousel.to(index);
 }
 
-// Inicializar calendario
-function initializeCalendar() {
-    const calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
+// Función para abrir modal de imagen
+function openImageModal(imageUrl) {
+    // Crear modal dinámico
+    const modalHtml = `
+        <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title text-white" id="imageModalLabel">Vista ampliada</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0 text-center">
+                        <img src="${imageUrl}" class="img-fluid" alt="Imagen ampliada" style="max-height: 80vh; object-fit: contain;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
     
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'es',
-        height: 350,
-        headerToolbar: {
-            left: 'prev,next',
-            center: 'title',
-            right: 'today'
-        },
-        buttonText: {
-            today: 'Hoy'
-        },
-        selectable: true,
-        selectConstraint: {
-            start: new Date().toISOString().split('T')[0],
-            end: '2100-01-01'
-        },
-        validRange: {
-            start: new Date().toISOString().split('T')[0]
-        },
-        select: function(info) {
-            const startDate = info.startStr;
-            const endDate = info.endStr;
-            
-            // Validar que las fechas sean futuras considerando la hora actual
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const startDateObj = new Date(startDate);
-            const endDateObj = new Date(endDate);
-            
-            // Si es hoy, verificar que sea después de la hora actual
-            if (startDateObj.getTime() === today.getTime()) {
-                const currentHour = now.getHours();
-                const currentMinute = now.getMinutes();
-                
-                // Si es muy tarde en el día (después de las 18:00), no permitir reservas para hoy
-                if (currentHour >= 18) {
-                    showAvailabilityMessage('Es muy tarde para reservar hoy. Por favor selecciona mañana o una fecha futura.', 'danger');
-                    calendar.unselect();
-                    return;
-                }
-            }
-            
-            if (startDateObj < today) {
-                showAvailabilityMessage('La fecha de inicio debe ser hoy o posterior', 'danger');
-                calendar.unselect();
-                return;
-            }
-            
-            if (endDateObj <= startDateObj) {
-                showAvailabilityMessage('La fecha de salida debe ser posterior a la fecha de llegada', 'danger');
-                calendar.unselect();
-                return;
-            }
-            
-            // Actualizar formulario de reserva
-            document.getElementById('start_date').value = startDate;
-            document.getElementById('end_date').value = endDate;
-            
-            // Calcular total
-            calculateTotal();
-            
-            // Mostrar mensaje de éxito
-            showAvailabilityMessage('Fechas seleccionadas correctamente', 'success');
-            
-            // Limpiar selección del calendario
-            calendar.unselect();
-        },
-        dayCellDidMount: function(arg) {
-            // Personalizar celdas del calendario
-            const date = arg.date;
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            if (date < today) {
-                arg.el.style.backgroundColor = '#f8f9fa';
-                arg.el.style.color = '#6c757d';
-                arg.el.style.cursor = 'not-allowed';
-                arg.el.title = 'Fecha no disponible';
-            } else if (date.getTime() === today.getTime()) {
-                // Si es hoy, verificar la hora
-                const currentHour = now.getHours();
-                if (currentHour >= 18) {
-                    arg.el.style.backgroundColor = '#f8f9fa';
-                    arg.el.style.color = '#6c757d';
-                    arg.el.style.cursor = 'not-allowed';
-                    arg.el.title = 'Es muy tarde para reservar hoy';
-                }
-            }
-        },
-        events: function(info, successCallback, failureCallback) {
-            // Cargar eventos de disponibilidad desde el servidor
-            loadAvailabilityEvents(info.start, info.end, successCallback, failureCallback);
-        },
-        eventDidMount: function(info) {
-            // Personalizar eventos
-            const event = info.event;
-            const element = info.el;
-            
-            if (event.extendedProps.status === 'pending') {
-                element.style.backgroundColor = '#ffc107';
-                element.style.borderColor = '#ffc107';
-            } else if (event.extendedProps.status === 'approved') {
-                element.style.backgroundColor = '#dc3545';
-                element.style.borderColor = '#dc3545';
-            }
+    // Remover modal existente si existe
+    const existingModal = document.getElementById('imageModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Agregar nuevo modal al body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+    
+    // Limpiar modal cuando se cierre
+    document.getElementById('imageModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Función para compartir propiedad
+function shareProperty() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ $property->name }}',
+            text: 'Mira esta increíble propiedad en Reservalo',
+            url: window.location.href
+        });
+    } else {
+        // Fallback para navegadores que no soportan Web Share API
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('¡Enlace copiado al portapapeles!');
+        });
+    }
+}
+
+// Función para scroll suave
+function smoothScrollTo(element) {
+    element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
+}
+
+// Función para animar elementos al hacer scroll
+function animateOnScroll() {
+    const elements = document.querySelectorAll('.fade-in-up');
+    elements.forEach(element => {
+        const elementTop = element.getBoundingClientRect().top;
+        const elementVisible = 150;
+        
+        if (elementTop < window.innerHeight - elementVisible) {
+            element.classList.add('fade-in-up');
         }
     });
+}
+
+// Función para el botón de volver arriba
+function toggleBackToTop() {
+    const backToTopBtn = document.getElementById('backToTop');
+    if (window.scrollY > 300) {
+        backToTopBtn.style.display = 'block';
+    } else {
+        backToTopBtn.style.display = 'none';
+    }
+}
+
+// Función para actualizar precio dinámico
+function updateDynamicPrice() {
+    const priceElement = document.getElementById('dynamic-price');
+    if (priceElement) {
+        // Aquí puedes agregar lógica para actualizar el precio basado en fechas seleccionadas
+        // Por ahora mantenemos el precio base
+    }
+}
+
+// Inicializar funcionalidades cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar clases de animación a elementos
+    const animatedElements = document.querySelectorAll('.card, .feature-item, .service-item');
+    animatedElements.forEach((element, index) => {
+        element.style.animationDelay = `${index * 0.1}s`;
+        element.classList.add('fade-in-up');
+    });
     
-    calendar.render();
+    // Configurar scroll listener
+    window.addEventListener('scroll', () => {
+        animateOnScroll();
+        toggleBackToTop();
+    });
     
-    // Guardar referencia global
-    window.propertyCalendar = calendar;
+    // Configurar botón de volver arriba
+    const backToTopBtn = document.getElementById('backToTop');
+    if (backToTopBtn) {
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+    
+    // Configurar botones de compartir
+    const shareButtons = document.querySelectorAll('[onclick*="shareProperty"]');
+    shareButtons.forEach(button => {
+        button.addEventListener('click', shareProperty);
+    });
+    
+    // Inicializar animaciones
+    animateOnScroll();
+});
+
+// Variables globales para el calendario dinámico
+let currentDate = new Date();
+let selectedStartDate = null;
+let selectedEndDate = null;
+let isSelectingEndDate = false;
+let occupiedDates = [];
+
+// Inicializar calendario dinámico
+function initializeDynamicCalendar() {
+    console.log('Inicializando calendario dinámico');
+    
+    // Cargar fechas ocupadas
+    fetchOccupiedDates();
+    
+    // Renderizar calendario
+    renderCalendar();
+    
+    // Configurar navegación
+    setupCalendarNavigation();
+    
+    // Configurar botones de acción
+    setupCalendarActions();
+}
+
+// Cargar fechas ocupadas
+async function fetchOccupiedDates() {
+    const propertyId = {{ $property->id }};
+    
+    try {
+        // Mostrar indicador de carga
+        showLoadingIndicator();
+        
+        const response = await fetch(`/api/properties/${propertyId}/occupied-dates`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        occupiedDates = data.occupied_dates || [];
+        console.log('Fechas ocupadas cargadas:', occupiedDates);
+        
+        // Mostrar información de fechas ocupadas
+        showOccupiedDatesInfo(occupiedDates.length);
+        
+        // Re-renderizar calendario con fechas ocupadas
+        renderCalendar();
+    } catch (error) {
+        console.error('Error al cargar fechas ocupadas:', error);
+        occupiedDates = [];
+        showErrorIndicator('Error cargando fechas ocupadas');
+    }
+}
+
+// Función para mostrar indicador de carga
+function showLoadingIndicator() {
+    const indicator = document.getElementById('occupiedIndicator');
+    if (indicator) {
+        indicator.style.display = 'flex';
+        indicator.innerHTML = '<i class="fas fa-circle"></i><span>Cargando fechas ocupadas...</span>';
+    }
+}
+
+// Función para mostrar información de fechas ocupadas
+function showOccupiedDatesInfo(count) {
+    const indicator = document.getElementById('occupiedIndicator');
+    if (indicator) {
+        if (count > 0) {
+            indicator.innerHTML = `<i class="fas fa-circle"></i><span>${count} fecha(s) ocupada(s) encontrada(s)</span>`;
+        } else {
+            indicator.innerHTML = '<i class="fas fa-circle"></i><span>No hay fechas ocupadas</span>';
+        }
+        indicator.style.display = 'flex';
+    }
+}
+
+// Función para mostrar error
+function showErrorIndicator(message) {
+    const indicator = document.getElementById('occupiedIndicator');
+    if (indicator) {
+        indicator.innerHTML = `<i class="fas fa-circle"></i><span>${message}</span>`;
+        indicator.style.display = 'flex';
+    }
+}
+
+// Función para verificar si una fecha está ocupada
+function isDateOccupied(dateString) {
+    return occupiedDates.includes(dateString);
+}
+
+// Función para validar que no haya fechas ocupadas en un rango
+function validateDateRange(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Verificar cada día del rango
+    while (start <= end) {
+        const dateString = start.toISOString().split('T')[0];
+        if (isDateOccupied(dateString)) {
+            return false; // Hay al menos una fecha ocupada
+        }
+        start.setDate(start.getDate() + 1);
+    }
+    
+    return true; // El rango está completamente disponible
+}
+
+// Función para encontrar fechas ocupadas en un rango
+function findOccupiedDatesInRange(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const occupiedInRange = [];
+    
+    while (start <= end) {
+        const dateString = start.toISOString().split('T')[0];
+        if (isDateOccupied(dateString)) {
+            occupiedInRange.push(dateString);
+        }
+        start.setDate(start.getDate() + 1);
+    }
+    
+    return occupiedInRange;
+}
+
+// Función para mostrar advertencia de fecha ocupada
+function showOccupiedDateWarning(dayDate) {
+    const dateFormatted = dayDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    alert(`Fecha ocupada: ${dateFormatted}\nEsta fecha no está disponible para reservas`);
+}
+
+// Función para mostrar advertencia de rango ocupado
+function showRangeOccupiedWarning(startDate, endDate) {
+    const startFormatted = startDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    const endFormatted = endDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    // Encontrar fechas ocupadas en el rango
+    const occupiedInRange = findOccupiedDatesInRange(startDate, endDate);
+    const occupiedDatesFormatted = occupiedInRange.map(date => 
+        new Date(date).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit'
+        })
+    ).join(', ');
+    
+    alert(`Rango no disponible: ${startFormatted} - ${endFormatted}\nFechas ocupadas: ${occupiedDatesFormatted}`);
+}
+
+// Función para mostrar advertencia de fecha bloqueada para rango
+function showBlockedRangeWarning(dayDate) {
+    const dateFormatted = dayDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    const startFormatted = selectedStartDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    // Encontrar fechas ocupadas en el rango
+    const occupiedInRange = findOccupiedDatesInRange(selectedStartDate, dayDate);
+    const occupiedDatesFormatted = occupiedInRange.map(date => 
+        new Date(date).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit'
+        })
+    ).join(', ');
+    
+    alert(`Rango bloqueado: ${startFormatted} - ${dateFormatted}\nFechas ocupadas: ${occupiedDatesFormatted}`);
+}
+
+// Función para sugerir fechas alternativas
+function suggestAlternativeDates(startDate, endDate) {
+    const startFormatted = startDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    const endFormatted = endDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
+    // Encontrar fechas ocupadas en el rango
+    const occupiedInRange = findOccupiedDatesInRange(startDate, endDate);
+    const occupiedDatesFormatted = occupiedInRange.map(date => 
+        new Date(date).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit'
+        })
+    ).join(', ');
+    
+    // Buscar fechas alternativas
+    const alternatives = findAlternativeRanges(startDate, endDate);
+    
+    let alternativesText = '';
+    if (alternatives.length > 0) {
+        alternativesText = '\n\nFechas alternativas sugeridas:\n' + 
+            alternatives.map(alt => `• ${alt.start} - ${alt.end}`).join('\n');
+    }
+    
+    alert(`Rango no disponible: ${startFormatted} - ${endFormatted}\nFechas ocupadas: ${occupiedDatesFormatted}${alternativesText}`);
+}
+
+// Función para encontrar rangos alternativos
+function findAlternativeRanges(startDate, endDate) {
+    const alternatives = [];
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const rangeLength = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Buscar antes del rango original
+    for (let i = 1; i <= 14; i++) { // Aumentar el rango de búsqueda
+        const altStart = new Date(start);
+        altStart.setDate(start.getDate() - i);
+        const altEnd = new Date(altStart);
+        altEnd.setDate(altStart.getDate() + rangeLength - 1);
+        
+        // Verificar que el rango alternativo esté completamente libre
+        if (validateDateRange(altStart, altEnd) && !hasOccupiedDatesInRange(altStart, altEnd)) {
+            alternatives.push({
+                start: altStart.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                }),
+                end: altEnd.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                })
+            });
+            if (alternatives.length >= 2) break;
+        }
+    }
+    
+    // Buscar después del rango original
+    for (let i = 1; i <= 14; i++) { // Aumentar el rango de búsqueda
+        const altStart = new Date(start);
+        altStart.setDate(start.getDate() + i);
+        const altEnd = new Date(altStart);
+        altEnd.setDate(altStart.getDate() + rangeLength - 1);
+        
+        // Verificar que el rango alternativo esté completamente libre
+        if (validateDateRange(altStart, altEnd) && !hasOccupiedDatesInRange(altStart, altEnd)) {
+            alternatives.push({
+                start: altStart.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                }),
+                end: altEnd.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                })
+            });
+            if (alternatives.length >= 4) break;
+        }
+    }
+    
+    return alternatives.slice(0, 3); // Máximo 3 alternativas
+}
+
+// Función auxiliar para verificar si hay fechas ocupadas en un rango
+function hasOccupiedDatesInRange(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    while (start <= end) {
+        const dateString = start.toISOString().split('T')[0];
+        if (isDateOccupied(dateString)) {
+            return true; // Hay al menos una fecha ocupada
+        }
+        start.setDate(start.getDate() + 1);
+    }
+    
+    return false; // El rango está completamente libre
+}
+
+// Renderizar calendario
+function renderCalendar() {
+    const calendarDays = document.getElementById('calendarDays');
+    const monthYear = document.getElementById('currentMonthYear');
+    
+    if (!calendarDays || !monthYear) return;
+    
+    // Actualizar título del mes
+    updateMonthYear();
+    
+    // Limpiar días existentes
+    calendarDays.innerHTML = '';
+    
+    // Obtener primer día del mes y número de días
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    // Generar días del calendario
+    for (let i = 0; i < 42; i++) {
+        const dayDate = new Date(startDate);
+        dayDate.setDate(startDate.getDate() + i);
+        
+        const dayElement = createDayElement(dayDate);
+        calendarDays.appendChild(dayElement);
+    }
+}
+
+// Crear elemento de día
+function createDayElement(dayDate) {
+    const dayElement = document.createElement('div');
+    dayElement.className = 'calendar-day';
+    dayElement.textContent = dayDate.getDate();
+    
+    const today = new Date();
+    const isCurrentMonth = dayDate.getMonth() === currentDate.getMonth();
+    const isToday = dayDate.toDateString() === today.toDateString();
+    
+    // Permitir seleccionar el día de hoy, solo bloquear fechas pasadas
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+    const isPast = dayDateOnly < todayOnly;
+    const dateString = dayDate.toISOString().split('T')[0];
+    const isOccupied = isDateOccupied(dateString);
+    
+    // Aplicar clases según el estado
+    if (!isCurrentMonth) {
+        dayElement.classList.add('other-month');
+    }
+    
+    if (isPast) {
+        dayElement.classList.add('disabled');
+    }
+    
+    if (isOccupied) {
+        dayElement.classList.add('occupied');
+        dayElement.title = 'Fecha ocupada - No disponible';
+    } else if (!isPast && isCurrentMonth) {
+        // Solo las fechas disponibles y del mes actual tienen animación
+        dayElement.classList.add('selectable');
+    }
+    
+    if (isToday) {
+        dayElement.classList.add('today');
+    }
+    
+    // Verificar si está seleccionado
+    if (selectedStartDate && dayDate.getTime() === selectedStartDate.getTime()) {
+        dayElement.classList.add('selected-start');
+    }
+    if (selectedEndDate && dayDate.getTime() === selectedEndDate.getTime()) {
+        dayElement.classList.add('selected-end');
+    }
+    
+    // Verificar si está en el rango seleccionado
+    if (selectedStartDate && selectedEndDate) {
+        const start = selectedStartDate.getTime();
+        const end = selectedEndDate.getTime();
+        const dayTime = dayDate.getTime();
+        
+        if (dayTime > start && dayTime < end) {
+            dayElement.classList.add('in-range');
+        }
+    }
+    
+    // Verificar si debe estar bloqueado para rango
+    if (selectedStartDate && !selectedEndDate) {
+        const startDateOnly = new Date(selectedStartDate.getFullYear(), selectedStartDate.getMonth(), selectedStartDate.getDate());
+        const dayDateOnly = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+        
+        if (dayDateOnly > startDateOnly) {
+            // Buscar si hay fechas ocupadas entre la fecha de inicio y la fecha actual
+            let currentDate = new Date(startDateOnly);
+            currentDate.setDate(currentDate.getDate() + 1); // Empezar desde el día siguiente
+            
+            let hasOccupiedInRange = false;
+            let lastOccupiedDate = null;
+            
+            while (currentDate <= dayDateOnly) {
+                const currentDateString = currentDate.toISOString().split('T')[0];
+                if (isDateOccupied(currentDateString)) {
+                    hasOccupiedInRange = true;
+                    lastOccupiedDate = new Date(currentDate);
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Si hay fechas ocupadas en el rango, bloquear todas las fechas posteriores
+            if (hasOccupiedInRange) {
+                // Bloquear todas las fechas posteriores a la última fecha ocupada
+                if (lastOccupiedDate && dayDateOnly > lastOccupiedDate) {
+                    dayElement.classList.add('blocked-range');
+                    dayElement.title = 'Rango bloqueado - Hay fechas ocupadas en el rango';
+                }
+            }
+        }
+    }
+    
+    // Agregar evento de clic
+    dayElement.addEventListener('click', () => handleDayClick(dayDate, dayElement));
+    
+    return dayElement;
+}
+
+// Manejar clic en día
+function handleDayClick(dayDate, dayElement) {
+    // No permitir selección de días ocupados o deshabilitados
+    if (dayElement.classList.contains('occupied')) {
+        showOccupiedDateWarning(dayDate);
+                return;
+            }
+            
+    if (dayElement.classList.contains('disabled') || 
+        dayElement.classList.contains('other-month')) {
+                return;
+            }
+    
+    // Lógica de selección
+    if (!selectedStartDate) {
+        // Primera selección: fecha de inicio
+        selectedStartDate = dayDate;
+        dayElement.classList.add('selected');
+        isSelectingEndDate = true;
+        
+        // Actualizar inputs
+        updateDateInputs();
+        showSelectionStatus('Selecciona la fecha de salida');
+        
+        console.log('Fecha de inicio seleccionada:', selectedStartDate.toLocaleDateString());
+    } else if (!selectedEndDate && isSelectingEndDate) {
+        // Segunda selección: fecha de fin - VALIDAR RANGO COMPLETO
+        const startDate = selectedStartDate;
+        const endDate = dayDate;
+        
+        // Determinar el rango correcto (inicio y fin)
+        let actualStartDate, actualEndDate;
+        if (dayDate.getTime() === startDate.getTime()) {
+            // Misma fecha: reserva de un día
+            actualStartDate = startDate;
+            actualEndDate = dayDate;
+        } else if (dayDate < startDate) {
+            // Fecha anterior: intercambiar
+            actualStartDate = dayDate;
+            actualEndDate = startDate;
+        } else {
+            // Fecha posterior: rango normal
+            actualStartDate = startDate;
+            actualEndDate = dayDate;
+        }
+        
+        // VALIDAR QUE NO HAYA FECHAS OCUPADAS EN EL RANGO
+        if (validateDateRange(actualStartDate, actualEndDate)) {
+            selectedStartDate = actualStartDate;
+            selectedEndDate = actualEndDate;
+            isSelectingEndDate = false;
+            
+            // Actualizar visualización
+            updateCalendarSelection();
+            updateDateInputs();
+            hideSelectionStatus();
+            
+            // Actualizar formulario de reserva
+            updateReservationForm();
+            
+            console.log('Rango válido seleccionado - Inicio:', selectedStartDate.toLocaleDateString(), 'Fin:', selectedEndDate.toLocaleDateString());
+        } else {
+            // Mostrar error y sugerir fechas alternativas
+            suggestAlternativeDates(actualStartDate, actualEndDate);
+            return;
+        }
+    } else {
+        // Nueva selección: reiniciar
+        clearSelection();
+        selectedStartDate = dayDate;
+        dayElement.classList.add('selected');
+        isSelectingEndDate = true;
+        
+        updateDateInputs();
+        showSelectionStatus('Selecciona la fecha de salida');
+        
+        console.log('Nueva selección iniciada:', dayDate.toLocaleDateString());
+    }
+}
+
+// Validar rango de fechas
+function validateDateRange(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Verificar que no haya fechas ocupadas en el rango
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateString = d.toISOString().split('T')[0];
+        if (occupiedDates.includes(dateString)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Mostrar advertencia de fecha ocupada
+function showOccupiedDateWarning(date) {
+    showAvailabilityMessage(`La fecha ${date.toLocaleDateString()} está ocupada`, 'warning');
+}
+
+// Mostrar advertencia de rango ocupado
+function showRangeOccupiedWarning(startDate, endDate) {
+    showAvailabilityMessage(`El rango del ${startDate.toLocaleDateString()} al ${endDate.toLocaleDateString()} contiene fechas ocupadas`, 'danger');
+}
+
+// Mostrar advertencia de fecha bloqueada
+function showBlockedRangeWarning(date) {
+    showAvailabilityMessage(`La fecha ${date.toLocaleDateString()} no se puede seleccionar como fecha de fin debido a fechas ocupadas en el rango`, 'warning');
+}
+
+// Sugerir fechas alternativas
+function suggestAlternativeDates(startDate, endDate) {
+    const alternatives = findAlternativeRanges(startDate, endDate);
+    
+    if (alternatives.length > 0) {
+        let message = 'Fechas alternativas disponibles:\n';
+        alternatives.forEach((alt, index) => {
+            message += `${index + 1}. ${alt.start.toLocaleDateString()} - ${alt.end.toLocaleDateString()}\n`;
+        });
+        showAvailabilityMessage(message, 'info');
+    } else {
+        showAvailabilityMessage('No hay fechas alternativas disponibles para este rango', 'info');
+    }
+}
+
+// Encontrar rangos alternativos
+function findAlternativeRanges(startDate, endDate) {
+    const alternatives = [];
+    const rangeLength = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+    
+    // Buscar antes del rango original
+    for (let i = 1; i <= 7; i++) {
+        const newStart = new Date(startDate);
+        newStart.setDate(newStart.getDate() - i);
+        const newEnd = new Date(newStart);
+        newEnd.setDate(newEnd.getDate() + rangeLength);
+        
+        if (validateDateRange(newStart, newEnd)) {
+            alternatives.push({ start: newStart, end: newEnd });
+            if (alternatives.length >= 3) break;
+        }
+    }
+    
+    // Buscar después del rango original
+    for (let i = 1; i <= 7; i++) {
+        const newStart = new Date(startDate);
+        newStart.setDate(newStart.getDate() + i);
+        const newEnd = new Date(newStart);
+        newEnd.setDate(newEnd.getDate() + rangeLength);
+        
+        if (validateDateRange(newStart, newEnd)) {
+            alternatives.push({ start: newStart, end: newEnd });
+            if (alternatives.length >= 3) break;
+        }
+    }
+    
+    return alternatives;
+}
+
+// Actualizar selección visual del calendario
+function updateCalendarSelection() {
+    // Limpiar selecciones anteriores
+    document.querySelectorAll('.calendar-day.selected').forEach(day => {
+        day.classList.remove('selected');
+    });
+    
+    // Marcar fechas seleccionadas
+    document.querySelectorAll('.calendar-day').forEach(day => {
+        const dayDate = new Date(day.textContent);
+        dayDate.setMonth(currentDate.getMonth());
+        dayDate.setFullYear(currentDate.getFullYear());
+        
+        if (selectedStartDate && dayDate.getTime() === selectedStartDate.getTime()) {
+            day.classList.add('selected');
+        }
+        if (selectedEndDate && dayDate.getTime() === selectedEndDate.getTime()) {
+            day.classList.add('selected');
+        }
+    });
+}
+
+// Actualizar inputs de fecha
+function updateDateInputs() {
+    const startInput = document.getElementById('selectedStartDate');
+    const endInput = document.getElementById('selectedEndDate');
+    
+    if (startInput) {
+        startInput.value = selectedStartDate ? selectedStartDate.toLocaleDateString() : '';
+    }
+    
+    if (endInput) {
+        endInput.value = selectedEndDate ? selectedEndDate.toLocaleDateString() : '';
+    }
+}
+
+// Mostrar estado de selección
+function showSelectionStatus(message) {
+    const status = document.getElementById('selectionStatus');
+    const statusText = document.getElementById('statusText');
+    
+    if (status && statusText) {
+        statusText.textContent = message;
+        status.style.display = 'block';
+    }
+}
+
+// Ocultar estado de selección
+function hideSelectionStatus() {
+    const status = document.getElementById('selectionStatus');
+    if (status) {
+        status.style.display = 'none';
+    }
+}
+
+// Limpiar selección
+function clearSelection() {
+    selectedStartDate = null;
+    selectedEndDate = null;
+    isSelectingEndDate = false;
+    
+    // Limpiar visualización
+    document.querySelectorAll('.calendar-day.selected').forEach(day => {
+        day.classList.remove('selected');
+    });
+    
+    // Limpiar inputs
+    updateDateInputs();
+    hideSelectionStatus();
+    
+    // Limpiar formulario de reserva
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    if (startDateInput) startDateInput.value = '';
+    if (endDateInput) endDateInput.value = '';
+    
+    // Resetear campos de precio
+    resetPriceFields();
+}
+
+// Actualizar formulario de reserva
+function updateReservationForm() {
+    if (selectedStartDate && selectedEndDate) {
+        // Habilitar botón de reserva
+        const reserveBtn = document.getElementById('reserveBtn');
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.classList.remove('btn-secondary');
+            reserveBtn.classList.add('btn-primary');
+        }
+        
+        // Calcular total si existe la función
+        if (typeof calculateTotal === 'function') {
+            calculateTotal();
+        }
+    } else {
+        // Deshabilitar botón de reserva
+        const reserveBtn = document.getElementById('reserveBtn');
+        if (reserveBtn) {
+            reserveBtn.disabled = true;
+            reserveBtn.classList.remove('btn-primary');
+            reserveBtn.classList.add('btn-secondary');
+        }
+    }
+}
+
+        // Configurar navegación del calendario
+        function setupCalendarNavigation() {
+            const prevBtn = document.getElementById('prevMonth');
+            const nextBtn = document.getElementById('nextMonth');
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                    renderCalendar();
+                });
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    renderCalendar();
+                });
+            }
+        }
+        
+        // Actualizar el mes y año en el header
+        function updateMonthYear() {
+            const monthYearElement = document.getElementById('currentMonthYear');
+            if (monthYearElement) {
+                const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                                   'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                const month = monthNames[currentDate.getMonth()];
+                const year = currentDate.getFullYear();
+                monthYearElement.textContent = `${month} ${year}`;
+            }
+        }
+
+// Configurar botones de acción
+function setupCalendarActions() {
+    const clearBtn = document.getElementById('clearDates');
+    const todayBtn = document.getElementById('selectToday');
+    const weekendBtn = document.getElementById('selectWeekend');
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearSelection);
+    }
+    
+    if (todayBtn) {
+        todayBtn.addEventListener('click', () => {
+            const today = new Date();
+            const dayElement = document.querySelector(`.calendar-day:not(.disabled):not(.occupied)`);
+            if (dayElement) {
+                handleDayClick(today, dayElement);
+            }
+        });
+    }
+    
+    if (weekendBtn) {
+        weekendBtn.addEventListener('click', () => {
+            const today = new Date();
+            const nextSaturday = new Date(today);
+            nextSaturday.setDate(today.getDate() + (6 - today.getDay()));
+            const nextSunday = new Date(nextSaturday);
+            nextSunday.setDate(nextSaturday.getDate() + 1);
+            
+            // Seleccionar fin de semana
+            clearSelection();
+            selectedStartDate = nextSaturday;
+            selectedEndDate = nextSunday;
+            isSelectingEndDate = false;
+            
+            updateCalendarSelection();
+            updateDateInputs();
+            updateReservationForm();
+        });
+    }
 }
 
 // Cargar eventos de disponibilidad (simplificada)
@@ -851,7 +2296,7 @@ function loadNightlyPrices() {
             discountsIndicator.style.display = 'block';
         }
         
-        const basePrice = {{ $property->nightlyPrices && $property->nightlyPrices->where('is_active', true)->count() > 0 ? $property->nightlyPrices->where('is_active', true)->first()->base_price : $property->price ?? 100000 }};
+        const basePrice = {{ $effectivePrice }};
         const dynamicPrice = document.getElementById('dynamic-price');
         if (dynamicPrice) {
             dynamicPrice.textContent = '$' + basePrice.toLocaleString();
@@ -982,7 +2427,7 @@ function calculateTotal() {
          document.getElementById('nights').value = nights + ' noche(s)';
         
         // Obtener precio base por noche desde la página
-        const basePricePerNight = {{ $property->nightlyPrices && $property->nightlyPrices->where('is_active', true)->count() > 0 ? $property->nightlyPrices->where('is_active', true)->first()->base_price : $property->price }};
+        const basePricePerNight = {{ $effectivePrice }};
         console.log('Precio base por noche:', basePricePerNight);
         
         // Mostrar precio por noche
@@ -1054,8 +2499,8 @@ function calculateTotal() {
 
 // Función de fallback para cálculo básico
 function fallbackCalculation(nights) {
-    // Usar el precio real de la migración si está disponible
-    const pricePerNight = {{ $property->nightlyPrices && $property->nightlyPrices->where('is_active', true)->count() > 0 ? $property->nightlyPrices->where('is_active', true)->first()->base_price : $property->price }};
+    // Usar el precio efectivo calculado por el sistema de precios
+    const pricePerNight = {{ $effectivePrice }};
     
     // Si es el mismo día, calcular como 1 noche
     const actualNights = nights === 0 ? 1 : nights;
@@ -1162,7 +2607,7 @@ function loadAvailableDiscounts() {
         },
         body: JSON.stringify({
             nights: 1,
-            total_amount: {{ $property->nightlyPrices && $property->nightlyPrices->where('is_active', true)->count() > 0 ? $property->nightlyPrices->where('is_active', true)->first()->base_price : $property->price ?? 100000 }},
+            total_amount: {{ $effectivePrice }},
             check_in: new Date().toISOString().split('T')[0]
         })
     })

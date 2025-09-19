@@ -25,8 +25,8 @@ class GlobalPricingSeeder extends Seeder
         $pricings = [
             // Precio estándar activo
             [
-                'name' => 'Precio Estándar 2025',
-                'base_price' => 150000.00,
+                'name' => 'Días Normales',
+                'base_price' => 250000.00,
                 'price_type' => 'daily',
                 'has_discount' => false,
                 'discount_percentage' => null,

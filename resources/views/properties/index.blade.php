@@ -67,6 +67,23 @@
                                  </div>
                              </div>
                          </div>
+                         
+                         @if($stats['active_global_pricing'])
+                         <div class="row justify-content-center mt-4">
+                             <div class="col-md-6">
+                                 <div class="pricing-info-card bg-white bg-opacity-20 rounded-3 p-3 text-center">
+                                     <div class="d-flex align-items-center justify-content-center mb-2">
+                                         <i class="fas fa-tag text-warning me-2"></i>
+                                         <span class="fw-bold">Precio Estándar</span>
+                                     </div>
+                                     <div class="h4 mb-1 text-white">
+                                         ${{ number_format($stats['active_global_pricing']->final_price, 0, ',', '.') }}
+                                     </div>
+                                     <small class="text-white-50">{{ $stats['active_global_pricing']->name }}</small>
+                                 </div>
+                             </div>
+                         </div>
+                         @endif
                      </div>
                  </div>
              </div>
@@ -288,7 +305,7 @@
                                         
                                         <!-- Precio -->
                                         <div class="price-tag">
-                                            <div class="price-amount">{{ $property->formatted_price }}</div>
+                                            <div class="price-amount">${{ number_format($property->effective_price, 0, ',', '.') }}</div>
                                             <div class="price-period">por noche</div>
                                         </div>
                                     </div>
@@ -763,19 +780,21 @@
     border-radius: 16px;
     padding: 1rem 1.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     border: none;
     color: white;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
 .btn-view-details:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
     color: white;
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
 }
 
 .btn-quick-view {
