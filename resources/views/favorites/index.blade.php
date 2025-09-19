@@ -87,7 +87,7 @@
                                     <!-- Botón de favorito (ya está en favoritos) -->
                                     <button class="favorite-btn active" 
                                             data-property-id="{{ $property->id }}"
-                                            onclick="toggleFavorite(this, {{ $property->id }})"
+                                            onclick="removeFavorite({{ $property->id }}, this)"
                                             title="Quitar de favoritos">
                                         <i class="fas fa-heart"></i>
                                     </button>

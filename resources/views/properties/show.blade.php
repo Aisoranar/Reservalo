@@ -56,7 +56,7 @@
                             </div>
                             <div class="d-flex align-items-center justify-content-center mt-3">
                                 @auth
-                                    <button class="btn btn-outline-primary btn-sm me-2" id="favoriteBtn">
+                                    <button class="btn btn-outline-primary btn-sm me-2" onclick="toggleFavorite({{ $property->id }})" title="Agregar a favoritos">
                                         <i class="far fa-heart me-1"></i>Favorito
                                     </button>
                                 @endauth
@@ -523,17 +523,21 @@
                     </div>
                 </div>
             @else
-                <div class="card border-0 shadow-lg mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <!-- Sección para usuarios no autenticados con calendario interactivo -->
+                <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body text-center p-4">
-                        <i class="fas fa-lock fa-3x text-white mb-3"></i>
-                        <h5 class="text-white fw-bold mb-2">Inicia sesión para reservar</h5>
-                        <p class="text-white-50 mb-4">Necesitas una cuenta para hacer reservas</p>
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Selecciona tus fechas
+                        </h5>
+                        <p class="text-muted mb-4">Elige las fechas de tu estadía para ver el precio y continuar con la reserva</p>
+                        
                         <!-- Información de precio seleccionado -->
-                        <div id="selectedPriceInfo" class="alert alert-info mb-3" style="display: none;">
+                        <div id="selectedPriceInfo" class="alert alert-success mb-4" style="display: none;">
                             <div class="row">
                                 <div class="col-12">
-                                    <h6 class="fw-bold mb-3">
-                                        <i class="fas fa-calculator me-2"></i>El precio:
+                                    <h6 class="fw-bold mb-3 text-success">
+                                        <i class="fas fa-calculator me-2"></i>Resumen de tu reserva
                                     </h6>
                                 </div>
                             </div>
@@ -541,33 +545,33 @@
                             <!-- Fechas seleccionadas -->
                             <div class="row mb-3">
                                 <div class="col-6">
-                                    <div class="text-center">
+                                    <div class="text-center p-2 bg-light rounded">
                                         <div class="small text-muted">Check-in</div>
-                                        <div class="fw-bold" id="selectedCheckIn">-</div>
+                                        <div class="fw-bold text-primary" id="selectedCheckIn">-</div>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="text-center">
+                                    <div class="text-center p-2 bg-light rounded">
                                         <div class="small text-muted">Check-out</div>
-                                        <div class="fw-bold" id="selectedCheckOut">-</div>
+                                        <div class="fw-bold text-primary" id="selectedCheckOut">-</div>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Desglose de precio -->
-                            <div class="price-breakdown">
+                            <div class="price-breakdown bg-white p-3 rounded">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="small text-muted">Precio por noche:</span>
-                                    <span class="small" id="selectedPricePerNight">$0</span>
+                                    <span class="small fw-bold" id="selectedPricePerNight">$0</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="small text-muted">Noches:</span>
-                                    <span class="small" id="selectedNights">0</span>
+                                    <span class="small fw-bold" id="selectedNights">0</span>
                                 </div>
                                 <hr class="my-2">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold">Total:</span>
-                                    <span class="h5 mb-0 text-primary" id="selectedTotalPrice">$0</span>
+                                    <span class="fw-bold h5">Total:</span>
+                                    <span class="h4 mb-0 text-success fw-bold" id="selectedTotalPrice">$0</span>
                                 </div>
                             </div>
                             
@@ -580,13 +584,25 @@
                             </div>
                         </div>
                         
-                        <div class="d-grid gap-3">
-                            <a href="#" id="loginWithDates" class="btn btn-light btn-lg fw-bold text-dark shadow-sm">
-                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        <!-- Mensaje inicial -->
+                        <div id="initialMessage" class="alert alert-info">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            <strong>¡Selecciona las fechas en el calendario de arriba!</strong><br>
+                            <small>Haz clic en las fechas de check-in y check-out para ver el precio</small>
+                        </div>
+                        
+                        <!-- Botones de acción (solo se muestran cuando hay fechas seleccionadas) -->
+                        <div id="actionButtons" class="d-grid gap-3" style="display: none;">
+                            <a href="#" id="loginWithDates" class="btn btn-primary btn-lg fw-bold shadow-sm">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión para Reservar
                             </a>
-                            <a href="#" id="registerWithDates" class="btn btn-outline-light btn-lg fw-bold shadow-sm">
-                                <i class="fas fa-user-plus me-2"></i>Registrarse
+                            <a href="#" id="registerWithDates" class="btn btn-outline-primary btn-lg fw-bold shadow-sm">
+                                <i class="fas fa-user-plus me-2"></i>Crear Cuenta y Reservar
                             </a>
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Tus fechas se guardarán y podrás completar la reserva después del registro
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -1800,6 +1816,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Función para calcular precio para usuarios no autenticados
+    function calculatePriceForGuests() {
+        if (!selectedStartDate || !selectedEndDate) return;
+        
+        // Calcular noches
+        const start = new Date(selectedStartDate);
+        const end = new Date(selectedEndDate);
+        const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        
+        // Precio base por noche
+        const basePricePerNight = {{ $property->price }};
+        const totalPrice = nights * basePricePerNight;
+        
+        // Actualizar información de precio
+        updatePriceInfoForGuests(nights, totalPrice, selectedStartDate, selectedEndDate);
+    }
+    
     // Función para actualizar información de precio para usuarios no autenticados
     function updatePriceInfoForGuests(nights, totalPrice, startDate, endDate) {
         const priceInfo = document.getElementById('selectedPriceInfo');
@@ -1904,28 +1937,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 endDateInput.value = formatDateToLocalString(selectedEndDate);
             }
             
-            // Habilitar botón de reserva
+            // Verificar si es usuario autenticado o no
             const reserveBtn = document.getElementById('reserveBtn');
+            const actionButtons = document.getElementById('actionButtons');
+            const initialMessage = document.getElementById('initialMessage');
+            
             if (reserveBtn) {
+                // Usuario autenticado - habilitar botón de reserva
                 reserveBtn.disabled = false;
                 reserveBtn.classList.remove('btn-secondary');
                 reserveBtn.classList.add('btn-primary');
+                
+                // Actualizar sección dinámica de precio
+                updateDynamicPriceSection();
+            } else if (actionButtons && initialMessage) {
+                // Usuario no autenticado - mostrar botones de acción y ocultar mensaje inicial
+                actionButtons.style.display = 'block';
+                initialMessage.style.display = 'none';
+                
+                // Calcular y mostrar precio para usuarios no autenticados
+                calculatePriceForGuests();
             }
-            
-            // Actualizar sección dinámica de precio
-            updateDynamicPriceSection();
             
             // Calcular total si existe la función (solo para usuarios no autenticados)
             if (typeof calculateTotal === 'function' && !document.getElementById('reserveBtn')) {
                 calculateTotal();
             }
         } else {
-            // Deshabilitar botón de reserva
+            // Deshabilitar botón de reserva para usuarios autenticados
             const reserveBtn = document.getElementById('reserveBtn');
             if (reserveBtn) {
                 reserveBtn.disabled = true;
                 reserveBtn.classList.remove('btn-primary');
                 reserveBtn.classList.add('btn-secondary');
+            }
+            
+            // Ocultar botones de acción para usuarios no autenticados
+            const actionButtons = document.getElementById('actionButtons');
+            const initialMessage = document.getElementById('initialMessage');
+            if (actionButtons && initialMessage) {
+                actionButtons.style.display = 'none';
+                initialMessage.style.display = 'block';
             }
             
             // Ocultar sección dinámica de precio
@@ -2514,9 +2566,18 @@ function formatDateToLocalString(date) {
 // Función para limpiar información de precio
 function clearPriceInfoForGuests() {
     const priceInfo = document.getElementById('selectedPriceInfo');
+    const actionButtons = document.getElementById('actionButtons');
+    const initialMessage = document.getElementById('initialMessage');
+    
     if (priceInfo) {
         priceInfo.style.display = 'none';
     }
+    
+    if (actionButtons && initialMessage) {
+        actionButtons.style.display = 'none';
+        initialMessage.style.display = 'block';
+    }
+    
     localStorage.removeItem('reservationData');
 }
 
@@ -3176,28 +3237,77 @@ function loadAvailableDiscounts() {
 
 // Toggle favorito
 function toggleFavorite(propertyId) {
+    console.log('Toggle favorite called for property:', propertyId);
+    
+    // Buscar todos los botones de favorito
+    const favoriteBtns = document.querySelectorAll('button[onclick*="toggleFavorite"]');
+    favoriteBtns.forEach(btn => {
+        btn.disabled = true;
+        if (btn.classList.contains('btn-sm')) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Cargando...';
+        } else {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+    });
+    
     fetch(`/favoritos/${propertyId}/toggle`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
-            const btn = document.getElementById('favoriteBtn');
-            if (data.isFavorite) {
-                btn.classList.remove('btn-outline-danger');
-                btn.classList.add('btn-danger');
-            } else {
-                btn.classList.remove('btn-danger');
-                btn.classList.add('btn-outline-danger');
+            // Actualizar todos los botones de favorito
+            favoriteBtns.forEach(btn => {
+                if (data.isFavorite) {
+                    btn.classList.remove('btn-outline-danger', 'btn-outline-primary');
+                    btn.classList.add('btn-danger');
+                    if (btn.classList.contains('btn-sm')) {
+                        btn.innerHTML = '<i class="fas fa-heart me-1"></i>Favorito';
+                    } else {
+                        btn.innerHTML = '<i class="fas fa-heart"></i>';
+                    }
+                } else {
+                    btn.classList.remove('btn-danger');
+                    if (btn.classList.contains('btn-sm')) {
+                        btn.classList.add('btn-outline-primary');
+                        btn.innerHTML = '<i class="far fa-heart me-1"></i>Favorito';
+                    } else {
+                        btn.classList.add('btn-outline-danger');
+                        btn.innerHTML = '<i class="far fa-heart"></i>';
+                    }
+                }
+            });
+            
+            // Mostrar mensaje de éxito
+            if (data.message) {
+                showAvailabilityMessage(data.message, 'success');
             }
+        } else {
+            console.error('Error from server:', data.message);
+            showAvailabilityMessage(data.message || 'Error al actualizar favoritos', 'error');
         }
     })
     .catch(error => {
         console.error('Error al toggle favorito:', error);
+        showAvailabilityMessage('Error de conexión. Intenta nuevamente.', 'error');
+    })
+    .finally(() => {
+        // Restaurar todos los botones
+        favoriteBtns.forEach(btn => {
+            btn.disabled = false;
+        });
     });
 }
 
