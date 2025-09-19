@@ -5,9 +5,18 @@
 @section('content')
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2">
-            <i class="fas fa-home me-2"></i>Gestión de Propiedades
-        </h1>
+        <div>
+            <h1 class="h2">
+                <i class="fas fa-home me-2"></i>Gestión de Propiedades
+            </h1>
+            @if(isset($activeGlobalPricing) && $activeGlobalPricing)
+                <div class="alert alert-info alert-sm d-inline-block mb-0">
+                    <i class="fas fa-tag me-1"></i>
+                    <strong>Precio Global Activo:</strong> {{ $activeGlobalPricing->name }} - 
+                    ${{ number_format($activeGlobalPricing->final_price, 0, ',', '.') }}
+                </div>
+            @endif
+        </div>
         <a href="{{ route('admin.properties.create') }}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Nueva Propiedad
         </a>
@@ -20,8 +29,9 @@
                     <thead>
                         <tr>
                             <th>Imagen</th>
-                            <th>Nombre</th>
+                            <th>Propiedad</th>
                             <th>Propietario</th>
+                            <th>Ubicación</th>
                             <th>Estado</th>
                             <th>Precio</th>
                             <th>Acciones</th>
@@ -44,11 +54,41 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <strong>{{ $property->name }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ $property->city->name ?? 'N/A' }}</small>
+                                    <div class="d-flex flex-column">
+                                        <strong class="text-primary">{{ $property->name }}</strong>
+                                        <small class="text-muted">{{ ucfirst($property->type) }}</small>
+                                        <div class="mt-1">
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-users me-1"></i>{{ $property->capacity }} personas
+                                            </span>
+                                            @if($property->bedrooms)
+                                                <span class="badge bg-light text-dark ms-1">
+                                                    <i class="fas fa-bed me-1"></i>{{ $property->bedrooms }} hab
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
-                                <td>{{ $property->owner->name ?? 'N/A' }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                            {{ substr($property->owner->name ?? 'N', 0, 1) }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ $property->owner->name ?? 'N/A' }}</div>
+                                            <small class="text-muted">{{ $property->owner->email ?? '' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                        <div>
+                                            <div class="fw-bold">{{ $property->city->name ?? 'N/A' }}</div>
+                                            <small class="text-muted">{{ $property->city->department->name ?? '' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
                                     @if($property->is_active)
                                         <span class="badge bg-success">Activa</span>
@@ -56,7 +96,14 @@
                                         <span class="badge bg-secondary">Inactiva</span>
                                     @endif
                                 </td>
-                                <td>${{ number_format($property->price_per_night, 2) }}</td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-primary">${{ number_format($property->effective_price, 0, ',', '.') }}</span>
+                                        @if($property->effective_price != $property->price_per_night)
+                                            <small class="text-muted text-decoration-line-through">${{ number_format($property->price_per_night, 0, ',', '.') }}</small>
+                                        @endif
+                                    </div>
+                                </td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ route('properties.show', $property) }}" 
@@ -80,7 +127,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="7" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-home fa-3x mb-3"></i>
                                         <p>No hay propiedades registradas</p>
@@ -126,6 +173,47 @@
 </div>
 
 @endsection
+
+@push('styles')
+<style>
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.alert-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+}
+
+.table td {
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.text-decoration-line-through {
+    text-decoration: line-through;
+}
+</style>
+@endpush
 
 @push('scripts')
 <script>

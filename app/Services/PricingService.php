@@ -66,6 +66,10 @@ class PricingService
      */
     public function getNightlyPrice(Property $property, Carbon $date): float
     {
+        // Obtener precio global activo primero
+        $globalPricing = GlobalPricing::getActivePricing();
+        $globalPrice = $globalPricing ? $globalPricing->final_price : 0;
+
         // Buscar precio específico de la propiedad
         $propertyPrice = NightlyPrice::forProperty($property->id)
             ->active()
@@ -80,17 +84,23 @@ class PricingService
             ->first();
 
         if ($propertyPrice) {
-            return $propertyPrice->getPriceForDate($date);
+            $specificPrice = $propertyPrice->getPriceForDate($date);
+            
+            // Si hay precio global activo y es mayor, usar el precio global
+            if ($globalPrice > 0 && $globalPrice > $specificPrice) {
+                return $globalPrice;
+            }
+            
+            return $specificPrice;
         }
 
-        // Buscar precio global activo
-        $globalPricing = GlobalPricing::getActivePricing();
-        if ($globalPricing) {
-            return $globalPricing->final_price;
+        // Si no hay precio específico, usar precio global
+        if ($globalPrice > 0) {
+            return $globalPrice;
         }
 
         // Buscar precio global en NightlyPrice (sistema anterior)
-        $globalPrice = NightlyPrice::global()
+        $globalPriceOld = NightlyPrice::global()
             ->active()
             ->where(function ($query) use ($date) {
                 $query->whereNull('valid_from')
@@ -102,8 +112,8 @@ class PricingService
             })
             ->first();
 
-        if ($globalPrice) {
-            return $globalPrice->getPriceForDate($date);
+        if ($globalPriceOld) {
+            return $globalPriceOld->getPriceForDate($date);
         }
 
         // Precio por defecto de la propiedad

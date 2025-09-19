@@ -71,7 +71,7 @@ Route::middleware(['auth', 'active.user', 'must.change.password'])->group(functi
     // Los usuarios regulares no tienen acceso a gestión de membresías
 
     // Panel de superadmin (accesible por superadmin y admin)
-    Route::middleware(['roles:superadmin,admin', 'audit.logging'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::middleware(['roles:superadmin,admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
         Route::get('/users/create', [SuperAdminController::class, 'createUser'])->name('users.create');

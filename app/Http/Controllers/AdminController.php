@@ -48,11 +48,20 @@ class AdminController extends Controller
 
     public function properties()
     {
-        $properties = Property::with(['images', 'owner'])
+        $properties = Property::with(['images', 'owner', 'city.department'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('admin.properties.index', compact('properties'));
+        // Calcular precios efectivos para cada propiedad (igual que la página pública)
+        $pricingService = new \App\Services\PricingService();
+        $activeGlobalPricing = \App\Models\GlobalPricing::getActivePricing();
+        
+        $properties->getCollection()->transform(function ($property) use ($pricingService) {
+            $property->effective_price = $pricingService->getNightlyPrice($property, now());
+            return $property;
+        });
+
+        return view('admin.properties.index', compact('properties', 'activeGlobalPricing'));
     }
 
     public function reservations()
